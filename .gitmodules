@@ -1,0 +1,3 @@
+[submodule "raspy"]
+	path = raspy
+	url = https://github.com/quantum-dan/raspy
