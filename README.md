@@ -1,6 +1,65 @@
 # raspy-cal
 Python automatic calibrator for HEC-RAS.  RAS + Python = raspy.
 
+## Functionality & Approach
+
+### General Functionality
+Raspy-cal will support both fully-automatic and partially-manual calibration modes.
+
+In manual mode, the user will specify a range of calibration parameters and a set of criteria.  The program will run a specified number of simulations across the range of parameters, comparing the results of each to the relevant criteria.  Then, it will show the user comparison plots (rating curves) of the top *n* parameter sets based on the criteria.  The user will use that information to specify a new range, and repeat until the user is satisfied with the results.
+
+In automatic mode, the user will also specify a range of calibration parameters and a set of criteria.  Then, the program will use a multi-objective genetic algorithm (likely NSGA-II) to optimize for a specified number of generations with a specified number of tests per generation.  After running the last generation, the entire generation will be displayed as in manual mode, as well as plots showing the best results (hopefully approximating the Pareto frontier) for any two criteria.  This will allow the user to select the overall best choice.
+
+In both cases, the user will initially have to specify a particular range to calibrate and calibrate against just one empirical data set.  Later, the program will support many data sets covering different ranges.
+
+### Detailed Approach
+Top-level (user-facing) functionality:
+* Display rating curves with parameters and criteria
+* Accept criteria and parameter ranges and specifications
+* Accept empirical data
+
+Mid-level (doing the work) functionality:
+* Compute criteria
+* Choose parameter combinations
+* Select best combinations
+* Use automatic optimization (later)
+
+Low-level (support) functionality:
+* Run simulations
+* Update parameter values
+* (Eventually) generate flow profiles etc from empirical data; at first, the user will need to specify the flow profiles (pyRasFile supports this use case with minor manual intervention)
+
+## General Development Plan
+Current progress: haven't started yet.
+
+1. Minimum feature set
+    1. Implement critical low-level functionality (run simulations, update *n* values)
+    1. Implement critical mid-level functionality for semi-manual mode (compute criteria, generate parameter combinations, choose best combinations)
+    1. Implement critical top-level functionality (accept inputs, display outputs, accept updated inputs & iterate) (covers both semi-manual and automatic)
+    1. Implement critical mid-level functionality for automatic mode (automatic optimization)
+1. Analysis & recommendations
+    1. Analyze which criteria lead to best results under which geometry and flow conditions
+1. Basic improvements
+    1. Implement automatic data preparation from empirical data (flow profiles etc)
+    1. Implement multi-target calibration support
+        1. Multiple flow ranges
+        1. Multiple locations/empirical data sets (manual range specification)
+    1. Implement automatic generic-use outputs (for use by interfaces)
+    1. Implement R interface
+    1. Implement generic config file + command line interface for use by other programs
+1. Luxury improvements
+    1. Implement user-friendly setup tool (e.g. via interactive command line script) so that minimal computer skill is required
+    1. Implement graphical setup tool
+    1. Implement any necessary changes to make the tool fully generic with respect to both parameters and criteria, allowing it to be used outside of HEC-RAS (if this is not already the case naturally)
+    1. Implement full GUI
+    1. Implement calibration support tools (e.g. automatic hydrologic-hydraulic model interfacing) (this - very distant - goal would basically mean, for particular applications, "put in rainfall, geometry, and empirical flow data, get out calibrated model" or analogous)
+    
+### Rough Timeline
+1. Minimum feature set: next few months - ideally by March 2020, almost certainly by May 2020
+1. Analysis & recommendations: within a month after MFS
+1. Basic improvements: within 1-2 months after A&R if that is before June 2020, otherwise 4-5 months
+1. Luxury improvements: low-priority continuing development with no specific timeline
+
 ## Required API
 
 Raspy-cal assumes that the following functionality is available in an API object.  This is provided by raspy.  At the current development level, the user must provide an initialized API object with a project open and the appropriate plan, flow, geometry etc selected.
