@@ -17,10 +17,10 @@ Required methods:
     * ops: general operations
         * openProject(projectPath): open the relevant project (project path including *.prj file)
         * compute(steady = True, plan = None): compute for the relevant plan, if specified.  Note that the current (prototype) implementation of raspy ignores both arguments and just runs the current plan.
-    * data: data retrieval from the latest simulation.  Unless otherwise noted, all the methods work the same way with specifying locations as allFlow (see below).
-        * allFlow(river = None, reach = None, rs = None): returns all flow data for the specified location (or, if unspecified, nested dictionaries to the point that it is specified--all None would be `{river: {reach: {rs: }}}`).  Flow data entries have values .velocity, .flow, .maxDepth, and .etc, where etc is a dictionary of everything else.
-        * getSingleDatum(func, river, reach, rs): like allFlow, but without default arguments and `func` specifies which aspect to extract (e.g. `lambda x: x.velocity`).  This is mainly in raspy for internal use (hence lack of default arguments), but may be needed to extract values not automatically provided.
-        * velocity(river = None, reach = None, rs = None): returns the velocity.
+    * data: data retrieval from the latest simulation.  Unless otherwise noted, all the methods work the same way with specifying locations and profiles as allFlow (see below).
+        * allFlow(river = None, reach = None, rs = None, nprofs = 1): returns all flow data for the specified location (or, if unspecified, nested dictionaries to the point that it is specified--all None would be `{river: {reach: {rs: }}}`).  Flow data entries have values .velocity, .flow, .maxDepth, and .etc, where etc is a dictionary of everything else.  If nprofs is 1, it will return that for the first profile.  If not, it will return a dictionary of `{profile number: results}` for each profile up to nprofs wrapping the aforementioned results.
+        * getSingleDatum(func, river, reach, rs, nprofs = 1): like allFlow, but without default arguments and `func` specifies which aspect to extract (e.g. `lambda x: x.velocity`).  This is mainly in raspy for internal use (hence lack of default arguments), but may be needed to extract values not automatically provided.
+        * velocity(river = None, reach = None, rs = None, nprofs = 1): returns the velocity.
         * stage(river = None, reach = None, rs = None): returns the maximum depth
     * params: setting parameters
         * modifyN(manning, river, reach, geom = None): set Manning's n for the given geometry file (if specified).  Note that the current implementation of raspy ignores the geom argument and just uses the current geometry file.  At least the following forms of `manning` must be supported (note: in raspy currently, setting the "main channel n" actually sets all three ns to the same value): `manning` is a...
