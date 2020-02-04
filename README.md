@@ -3,11 +3,11 @@ Python automatic calibrator for HEC-RAS.  RAS + Python = raspy.
 
 ## Usage & Installation
 
-Raspy-cal is not yet in a useful stage of development.  See [development progress](#General Development Plan) below.
+Raspy-cal is not yet in a useful stage of development.  See [development progress](#General-Development-Plan) below.
 
 ### Dependencies
 
-Some Model object which supports the required functionality as described [below](#Required API).  The raspy package, which provides such an API, is
+Some Model object which supports the required functionality as described [below](#Required-API).  The raspy package, which provides such an API, is
 included as a submodule.  The raspy API can be accessed through `default.Model` if raspy is somewhere where it can be accessed (e.g. in its subdirectory
 as a submodule).
 
