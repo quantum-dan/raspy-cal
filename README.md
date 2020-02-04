@@ -30,11 +30,11 @@ Low-level (support) functionality:
 * (Eventually) generate flow profiles etc from empirical data; at first, the user will need to specify the flow profiles (pyRasFile supports this use case with minor manual intervention)
 
 ## General Development Plan
-Current progress: haven't started yet.
+Current progress: working on mid-level functionality (1-ii), partially completed.  Parameter set generation is implemented, the rest is not.
 
 1. Minimum feature set
-    1. Implement critical low-level functionality (run simulations, update *n* values)
-    1. Implement critical mid-level functionality for semi-manual mode (compute criteria, generate parameter combinations, choose best combinations)
+    1. Implement critical low-level functionality (run simulations, update *n* values) - DONE
+    1. Implement critical mid-level functionality for semi-manual mode (compute criteria, generate parameter combinations, choose best combinations) - IN PROGRESS
     1. Implement critical top-level functionality (accept inputs, display outputs, accept updated inputs & iterate) (covers both semi-manual and automatic)
     1. Implement critical mid-level functionality for automatic mode (automatic optimization)
 1. Analysis & recommendations
@@ -55,9 +55,9 @@ Current progress: haven't started yet.
     1. Implement calibration support tools (e.g. automatic hydrologic-hydraulic model interfacing) (this - very distant - goal would basically mean, for particular applications, "put in rainfall, geometry, and empirical flow data, get out calibrated model" or analogous)
     
 ### Rough Timeline
-1. Minimum feature set: next few months - ideally by March 2020, almost certainly by May 2020
-1. Analysis & recommendations: within a month after MFS
-1. Basic improvements: within 1-2 months after A&R if that is before June 2020, otherwise 4-5 months
+1. Minimum feature set: next few months - ideally by March 2020, almost certainly by April 2020
+1. Analysis & recommendations: within a month after MFS, probably by May 2020
+1. Basic improvements: within 1-2 months after A&R if that is before June 2020, otherwise August-September 2020
 1. Luxury improvements: low-priority continuing development with no specific timelines  
 
 ## Required API
