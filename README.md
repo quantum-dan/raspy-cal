@@ -58,7 +58,7 @@ Current progress: haven't started yet.
 1. Minimum feature set: next few months - ideally by March 2020, almost certainly by May 2020
 1. Analysis & recommendations: within a month after MFS
 1. Basic improvements: within 1-2 months after A&R if that is before June 2020, otherwise 4-5 months
-1. Luxury improvements: low-priority continuing development with no specific timeline
+1. Luxury improvements: low-priority continuing development with no specific timelines  
 
 ## Required API
 
@@ -75,7 +75,7 @@ Required methods:
 * api: overarching API object containing all functionality
     * ops: general operations
         * openProject(projectPath): open the relevant project (project path including *.prj file)
-        * compute(steady = True, plan = None): compute for the relevant plan, if specified.  Note that the current (prototype) implementation of raspy ignores both arguments and just runs the current plan.
+        * compute(steady = True, plan = None, wait = True): compute for the relevant plan, if specified.  If wait is true, don't continue until the computation is done.  Note that the current (prototype) implementation of raspy ignores both arguments and just runs the current plan.
     * data: data retrieval from the latest simulation.  Unless otherwise noted, all the methods work the same way with specifying locations and profiles as allFlow (see below).
         * allFlow(river = None, reach = None, rs = None, nprofs = 1): returns all flow data for the specified location (or, if unspecified, nested dictionaries to the point that it is specified--all None would be `{river: {reach: {rs: }}}`).  Flow data entries have values .velocity, .flow, .maxDepth, and .etc, where etc is a dictionary of everything else.  If nprofs is 1, it will return that for the first profile.  If not, it will return a dictionary of `{profile number: results}` for each profile up to nprofs wrapping the aforementioned results.
         * getSingleDatum(func, river, reach, rs, nprofs = 1): like allFlow, but without default arguments and `func` specifies which aspect to extract (e.g. `lambda x: x.velocity`).  This is mainly in raspy for internal use (hence lack of default arguments), but may be needed to extract values not automatically provided.
