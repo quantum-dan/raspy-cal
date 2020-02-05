@@ -35,12 +35,13 @@ minimizers = {
     "nse": lambda nse: -nse
 }
 
-def minimizeEval(sim, obs):
+def minimized(metrics):
     """
-    Return the full set of tests, but adjusted so that smaller is always better.
+    Adjust the given metrics so that smaller is better.
+    :param metrics: dictionary of {test: result} from tests
     """
     return {
-        test: minimizers[test](tests[test](sim, obs)) for test in tests
+        test: minimizers[test](metrics[test]) for test in metrics
     }
 
 def fullEval(sim, obs):
@@ -107,6 +108,56 @@ def bestN(points, n):
     :param n: How many points to return
     :return: A list of the best n points
     """
-    n = n if n <= len(points) else len(points)
-    return sorted(points, key = lambda p: p[1])[:n]
+    if (n == 1):
+        return [best(points)]
+    else:
+        n = n if n <= len(points) else len(points)
+        return sorted(points, key = lambda p: p[1])[:n]
+
+def evaluate(obs, sims, metrics = None, useBest = None, usePareto = True, n = 10):
+    """
+    Evaluate the simulations against obs using the given tests (all if None).  If useBest is specified, get the best
+    n based on whatever useBest is.  If usePareto and there are multiple metrics, get the non-dominated results.  If
+    usePareto is True and useBest is specified, and there are multiple metrics, then the non-dominated results will
+    be passed into the best evaluation.  If there is more than one metric, then either usePareto must be True or useBest
+    must be specified.  If there is only one metric, then both usePareto and useBest are ignored and the best n results
+    based on the one metric are returned.  Note that the metrics returned are the minimized versions.
+    :param obs: observed list
+    :param sims: list of (parameters, simulated result).  Simulated result must correspond to obs
+    :param metrics: list of metric names to use as specified in the tests dictionary, or None to use all of them
+    :param useBest: which metric to sort by, or None not to sort further if usePareto is True
+    :param usePareto: whether to only return non-dominated results (including for sorting, if useBest is specified)
+    :param n: how many results to return if useBest is specified or if there is only one metric
+    :return: list of (parameters, metrics, sim), sorted if useBest is specified, or just one (parameters, metrics)
+        if n == 1
+    """
+    evtr = evaluator(obs, metrics)
+    evalf = lambda sim: (sim[0], minimized(evtr(sim[1])), sim[1])
+    evaled = [evalf(sim) for sim in sims]
+    if (metrics is not None) and (len(metrics) == 1):
+        working = bestN([(pt[0], pt[1][metrics[0]], pt[2]) for pt in evaled], n)
+        return [(pt[0], evtr(pt[2]), pt[2]) for pt in working]
+    else:
+        keys = metrics if metrics is not None else list(tests.keys())  # So that the metrics will be in the same order
+        working = [(pt[0], [pt[1][key] for key in keys], pt[2]) for pt in evaled]
+        if usePareto:
+            working = nonDominated(working)
+        if useBest is not None:
+            keyx = keys.index(useBest)
+            working = [(pt[0], pt[1][keyx], pt[2]) for pt in working]  # Only use the one metric
+            working = bestN(working, n)
+        return [(pt[0], evtr(pt[2]), pt[2]) for pt in working]
+
+
+if __name__ == "__main__":
+    obs = [1,2,4,8,16]
+    sims = [
+        (1, [1,2,3,4,5]),
+        (2, [1,3,6,7,20]),
+        (3, [16, 8, 4, 2, 1])
+    ]
+    print(evaluate(obs, sims))
+    print(evaluate(obs, sims, useBest = "pbias", n = 1))
+    print(evaluate(obs, sims, metrics = ["r2", "pbias"]))
+
 
