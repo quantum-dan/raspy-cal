@@ -11,8 +11,11 @@ Some Model object which supports the required functionality as described [below]
 included as a submodule.  The raspy API can be accessed through `default.Model` if raspy is somewhere where it can be accessed (e.g. in its subdirectory
 as a submodule).
 
-Raspy-cal does not currently depend on any Python packages outside of the standard library.  However, it is developed using Python 3 and may not be
-compatible with Python 2.
+Packages:
+* scipy
+* HydroErr
+
+Raspy-cal is only tested with Python 3.  It may or may not work with Python 2.
 
 ### Installation
 
@@ -23,7 +26,8 @@ compatible with Python 2.
 ### General Functionality
 Raspy-cal will support both fully-automatic and partially-manual calibration modes.
 
-In manual mode, the user will specify a range of calibration parameters and a set of criteria.  The program will run a specified number of simulations across the range of parameters, comparing the results of each to the relevant criteria.  Then, it will show the user comparison plots (rating curves) of the top *n* parameter sets based on the criteria.  The user will use that information to specify a new range, and repeat until the user is satisfied with the results.
+In manual mode, the user will specify a range of calibration parameters and a set of criteria.  The program will run a specified number of simulations across the range of parameters, comparing the results of each to the relevant criteria.  Then, it will show the user comparison plots (rating curves) of the top *n* parameter sets based on the criteria.  The user will use that information to specify a new range, and repeat 
+until the user is satisfied with the results.
 
 In automatic mode, the user will also specify a range of calibration parameters and a set of criteria.  Then, the program will use a multi-objective genetic algorithm (likely NSGA-II) to optimize for a specified number of generations with a specified number of tests per generation.  After running the last generation, the entire generation will be displayed as in manual mode, as well as plots showing the best results (hopefully approximating the Pareto frontier) for any two criteria.  This will allow the user to select the overall best choice.
 
