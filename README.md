@@ -51,11 +51,11 @@ Low-level (support) functionality:
 * (Eventually) generate flow profiles etc from empirical data; at first, the user will need to specify the flow profiles (pyRasFile supports this use case with minor manual intervention)
 
 ## General Development Plan
-Current progress: working on mid-level functionality (1-ii), partially completed.  Parameter set generation is implemented, the rest is not.
+Current progress: key mid-level functionality is complete, now starting on top-level functionality (1-iii).
 
 1. Minimum feature set
     1. Implement critical low-level functionality (run simulations, update *n* values) - DONE
-    1. Implement critical mid-level functionality for semi-manual mode (compute criteria, generate parameter combinations, choose best combinations) - IN PROGRESS
+    1. Implement critical mid-level functionality for semi-manual mode (compute criteria, generate parameter combinations, choose best combinations) - DONE
     1. Implement critical top-level functionality (accept inputs, display outputs, accept updated inputs & iterate) (covers both semi-manual and automatic)
     1. Implement critical mid-level functionality for automatic mode (automatic optimization)
 1. Analysis & recommendations
