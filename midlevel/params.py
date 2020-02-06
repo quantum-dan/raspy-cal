@@ -63,7 +63,7 @@ def genParams(paramSpecs, dicts = True):
             out.append([
                 plists[i][cx[i]] for i in range(len(cx))
             ])
-    if len(out[0]) > 1:
+    if dicts or len(out[0]) > 1:
         return out
     else:
         return [i[0] for i in out] # Allows for use with a single parameter
