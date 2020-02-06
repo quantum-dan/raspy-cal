@@ -40,10 +40,10 @@ def iterate():
         nmin = float(input("Enter minimum n: "))
         nmax = float(input("Enter maximum n: "))
         pspec = paramSpec("n", nmin, nmax, nct, rand)
-        ns = genParams(pspec, dicts = False)
+        ns = genParams([pspec], dicts = False)
         results = runSims(model, ns, river, reach, len(stage), range = [rs])
         # Complication below: results is a dictionary of {rs: {profile number: stage}}
-        resultPts = [(ns[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(ns))]
+        resultPts = [(ns[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(ns))]  # Type error: "float" object is not subscriptable
         best = evaluate(stage, resultPts)
         table = evalTable([b[0] for b in best], [b[1] for b in best])
         print(table)
