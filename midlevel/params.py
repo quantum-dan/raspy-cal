@@ -51,7 +51,7 @@ def genParams(paramSpecs, dicts = True):
             ])
         else:
             plists.append(
-                [i * (ps["max"] - ps["min"]) / (ps["n"] - 1) for i in range(ps["n"])]
+                [i * (ps["max"] - ps["min"]) / (ps["n"] - 1) + ps["min"] for i in range(ps["n"])]
             )
     combs = mkCombs([range(ps["n"]) for ps in paramSpecs])
     for cx in combs:

@@ -7,7 +7,7 @@ STAGE = 0
 VELOCITY = 1
 ALL = -1
 
-def runSims(model, mannings, river, reach, nprofs, range = None, retrieve = STAGE):
+def runSims(model, mannings, river, reach, nprofs, range = None, retrieve = STAGE, log = True):
     """
     Run simulations and return the data.
     :param model: model API, already initialized appropriately
@@ -20,7 +20,10 @@ def runSims(model, mannings, river, reach, nprofs, range = None, retrieve = STAG
     :return: list of the result data in order of the params used
     """
     out = []
+    count = 1
     for n in mannings:
+        if log:
+            print("Running iteration")
         model.params.modifyN(n, river, reach)
         model.ops.compute(wait = True)
         # Below is repetitive, but it would introduce a lot of extra complexity to make it work as a function, I think
@@ -39,5 +42,8 @@ def runSims(model, mannings, river, reach, nprofs, range = None, retrieve = STAG
                 out.append(model.data.allFlow(river, reach, None, nprofs))
             else:
                 out.append({rs: model.data.allFlow(river, reach, rs, nprofs) for rs in range})
+        if log:
+            print("Completed %d simulations" % count)
+            count += 1
     return out
 

@@ -3,13 +3,17 @@ Python automatic calibrator for HEC-RAS.  RAS + Python = raspy.
 
 ## Usage & Installation
 
-Raspy-cal is not yet in a useful stage of development.  See [development progress](#General-Development-Plan) below.
+`python main.py` for interactive use.
+
+The stage (empirical data) file requested must be a CSV with a column named Stage (a flow column may be included for ease of use, but is currently ignored by the program).  The stage values must be in the same order as the flow profiles in the HEC-RAS steady flow data.
+
+At the current stage of development, only interactive/semi-manual calibration is available, where raspy-cal simulates several scenarios and displays the results so that the user can select a new set of simulation parameters.  Currently, the user must have a fully-defined HEC-RAS project including appropriate flow profiles and geometry, in addition to providing empirical data.  See [development progress](#General-Development-Plan) below.
 
 ### Dependencies
 
 Some Model object which supports the required functionality as described [below](#Required-API).  The raspy package, which provides such an API, is
 included as a submodule.  The raspy API can be accessed through `default.Model` if raspy is somewhere where it can be accessed (e.g. in its subdirectory
-as a submodule).
+as a submodule).  Running through `main.py` will use raspy.
 
 Packages:
 * scipy
@@ -20,6 +24,15 @@ Raspy-cal is only tested with Python 3.  It may or may not work with Python 2.
 ### Installation
 
 `git clone https://github.com/quantum-dan/raspy-cal raspy_cal` (clone into `raspy_cal` if you want to import it from elsewhere, as `raspy-cal` isn't a valid Python name).
+
+The following will install all dependencies and run raspy-cal using raspy for HEC-RAS access:
+
+```
+git clone https://github.com/quantum-dan/raspy-cal
+pip install --user scipy HydroErr
+cd raspy-cal
+python main.py
+```
 
 ## Functionality & Approach
 
@@ -51,12 +64,14 @@ Low-level (support) functionality:
 * (Eventually) generate flow profiles etc from empirical data; at first, the user will need to specify the flow profiles (pyRasFile supports this use case with minor manual intervention)
 
 ## General Development Plan
-Current progress: semi-manual mode (1-iii) has been implemented and is being tested.  If it works, then the project can now be considered usable, though with a small subset of its intended functionality.
+Current progress: semi-manual mode is available with results displayed as a table of error statistics (1-iii-a), but comparison plots (1-iii-b) are not yet available.
 
 1. Minimum feature set
     1. Implement critical low-level functionality (run simulations, update *n* values) - DONE
     1. Implement critical mid-level functionality for semi-manual mode (compute criteria, generate parameter combinations, choose best combinations) - DONE
-    1. Implement critical top-level functionality (accept inputs, display outputs, accept updated inputs & iterate) (covers both semi-manual and automatic) - TESTING
+    1. Implement critical top-level functionality (accept inputs, display outputs, accept updated inputs & iterate) (covers both semi-manual and automatic)
+        1. Text-based outputs (table of n vs error stats) - DONE
+        1. Graphical outputs (comparison plots)
     1. Implement critical mid-level functionality for automatic mode (automatic optimization)
 1. Analysis & recommendations
     1. Analyze which criteria lead to best results under which geometry and flow conditions
@@ -76,9 +91,9 @@ Current progress: semi-manual mode (1-iii) has been implemented and is being tes
     1. Implement calibration support tools (e.g. automatic hydrologic-hydraulic model interfacing) (this - very distant - goal would basically mean, for particular applications, "put in rainfall, geometry, and empirical flow data, get out calibrated model" or analogous)
     
 ### Rough Timeline
-1. Minimum feature set: next few months - ideally by March 2020, almost certainly by April 2020
-1. Analysis & recommendations: within a month after MFS, probably by May 2020
-1. Basic improvements: within 1-2 months after A&R if that is before June 2020, otherwise August-September 2020
+1. Minimum feature set: next few weeks - by late February
+1. Analysis & recommendations: by late April
+1. Basic improvements: i and ii (important for functionality) by late May; iii-v (convenience features for external use) in fall 2020
 1. Luxury improvements: low-priority continuing development with no specific timelines  
 
 ## Required API

@@ -27,7 +27,7 @@ def evalTable(params, metricSets, paramName = "n", string = True):
     header = [space(i) for i in [paramName] + keys]
     rows = [header]
     for ix in range(len(params)):
-        row = [params[ix]] + ["%.3f" % metricSets[ix][k] for k in keys]
+        row = ["%.3f" % params[ix]] + ["%.3f" % metricSets[ix][k] for k in keys]
         rows.append([space(i) for i in row])
     if string:
         return "\n".join([" ".join(row) for row in rows])
