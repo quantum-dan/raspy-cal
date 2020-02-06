@@ -2,6 +2,8 @@
 Functions to display results.
 """
 
+import matplotlib.pyplot as plt
+
 def space(entry, width = 9, after = False):
     """
     Add spaces to the entry so that it is the appropriate width.  Add spaces before unless after is true.
@@ -34,4 +36,26 @@ def evalTable(params, metricSets, paramName = "n", string = True):
     else:
         return rows
 
+def compareRatingCurve(flows, obs, sim):
+    plt.plot(flows, obs, label = "Observed")
+    plt.plot(flows, sim, label = "Simulated")
+    plt.xlabel("Flow (cfs)")
+    plt.ylabel("Depth (ft)")
+    plt.legend()
+    plt.show()
+
+def compareAllRatingCurves(flows, obs, sims):
+    """
+    Compare all provided rating curves.
+    :param flows: list of flows
+    :param obs: list of observed depths
+    :param sims: list of (n, [simulated depths])
+    """
+    plt.plot(flows, obs, label = "Observed")
+    for (n, sim) in sims:
+        plt.plot(flows, sim, label = "Simulated (n = %.3f)" % n)
+    plt.xlabel("Flow (cfs)")
+    plt.ylabel("Depth (ft)")
+    plt.legend()
+    plt.show()
 

@@ -18,6 +18,7 @@ as a submodule).  Running through `main.py` will use raspy.
 Packages:
 * scipy
 * HydroErr
+* matplotlib
 
 Raspy-cal is only tested with Python 3.  It may or may not work with Python 2.
 
@@ -29,7 +30,7 @@ The following will install all dependencies and run raspy-cal using raspy for HE
 
 ```
 git clone https://github.com/quantum-dan/raspy-cal
-pip install --user scipy HydroErr
+pip install --user scipy HydroErr matplotlib
 cd raspy-cal
 python main.py
 ```
@@ -64,14 +65,14 @@ Low-level (support) functionality:
 * (Eventually) generate flow profiles etc from empirical data; at first, the user will need to specify the flow profiles (pyRasFile supports this use case with minor manual intervention)
 
 ## General Development Plan
-Current progress: semi-manual mode is available with results displayed as a table of error statistics (1-iii-a), but comparison plots (1-iii-b) are not yet available.
+Current progress: semi-manual mode (1-iii) is available.  Next step is automatic mode (1-iv).
 
 1. Minimum feature set
     1. Implement critical low-level functionality (run simulations, update *n* values) - DONE
     1. Implement critical mid-level functionality for semi-manual mode (compute criteria, generate parameter combinations, choose best combinations) - DONE
     1. Implement critical top-level functionality (accept inputs, display outputs, accept updated inputs & iterate) (covers both semi-manual and automatic)
         1. Text-based outputs (table of n vs error stats) - DONE
-        1. Graphical outputs (comparison plots)
+        1. Graphical outputs (comparison plots) - DONE
     1. Implement critical mid-level functionality for automatic mode (automatic optimization)
 1. Analysis & recommendations
     1. Analyze which criteria lead to best results under which geometry and flow conditions
