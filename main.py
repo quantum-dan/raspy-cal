@@ -14,7 +14,7 @@ Testing with LAR data:
 """
 
 locs = {
-    "F37B": {"river": "Compton Creek", "reach": "CC", "rs": "23350"},
+    "F37B": {"river": "Compton Creek", "reach": "CC", "rs": "23350."},
     "F45B": {"river": "Rio Hondo Chnl", "reach": "RHC", "rs": "7000"},
     "F300": {"river": "Upper LAR", "reach": "Above RH", "rs": "195289.1"},
     "F319": {"river": "LA River", "reach": "Below CC", "rs": "21500"}

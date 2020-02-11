@@ -4,7 +4,7 @@ Accept relevant inputs and put them into a useful format.
 
 from default import Model
 from lowlevel import runSims
-from midlevel.eval import evaluate, minimized, fullEval, tests
+from midlevel.eval import evaluate, minimized, fullEval, tests, evaluator
 from midlevel.params import paramSpec, genParams
 from frontend.display import evalTable, compareAllRatingCurves, compareRatingCurve
 from platypus import NSGAII, Problem, Real, nondominated # https://platypus.readthedocs.io/en/latest/getting-started.html#defining-constrained-problems
@@ -115,12 +115,13 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics):
     Automatically iterate with NSGA-II
     """
     keys = metrics  # ensure same order
+    evalf = evaluator(stage, useTests = keys)
     evals = int(input("How many evaluations to run? "))
     def manningEval(vars):
         n = vars[0]
         result = runSims(model, [n], river, reach, len(stage), range = [rs])[0][rs] # {profile: stage}
         result = [result[ix] for ix in range(1, len(stage) + 1)] # just stages
-        metrics = minimized(fullEval(result, stage))
+        metrics = minimized(evalf(result))
         values = [metrics[key] for key in keys]
         constraints = [-n, n - 1]
         return values, constraints
@@ -137,12 +138,12 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics):
     # Minimized is the inverse of minimized
     results = runSims(model, nondomNs, river, reach, len(stage), range = [rs])
     resultPts = [(nondomNs[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(nondomNs))]
-    metrics = [(res[0], fullEval(res[1], stage)) for res in resultPts]
+    metrics = [(res[0], evalf(res[1])) for res in resultPts]
     table = evalTable([m[0] for m in metrics], [m[1] for m in metrics])
     print(table)
     if plot:
         compareAllRatingCurves(flow, stage, resultPts)
-    if (outf != ""):
+    if outf != "":
         with open(outf, "w") as f:
             f.write(table)
         print("Results written to file %s" % outf)
