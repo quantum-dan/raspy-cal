@@ -19,6 +19,7 @@ Packages:
 * scipy
 * HydroErr
 * matplotlib
+* platypus-opt (NSGA-II implementation)
 
 Raspy-cal is only tested with Python 3.  It may or may not work with Python 2.
 
@@ -30,7 +31,7 @@ The following will install all dependencies and run raspy-cal using raspy for HE
 
 ```
 git clone https://github.com/quantum-dan/raspy-cal
-pip install --user scipy HydroErr matplotlib
+pip install --user scipy HydroErr matplotlib platypus-opt
 cd raspy-cal
 python main.py
 ```

@@ -4,9 +4,12 @@ Accept relevant inputs and put them into a useful format.
 
 from default import Model
 from lowlevel import runSims
-from midlevel.eval import evaluate
+from midlevel.eval import evaluate, minimized, fullEval, tests
 from midlevel.params import paramSpec, genParams
 from frontend.display import evalTable, compareAllRatingCurves, compareRatingCurve
+from platypus import NSGAII, Problem, Real, nondominated # https://platypus.readthedocs.io/en/latest/getting-started.html#defining-constrained-problems
+# Note: above uses local clone of Platypus because the pip version doesn't seem to work.  This is not a long-term
+# solution.
 
 def singleStageFile(path):
     """
@@ -21,6 +24,38 @@ def singleStageFile(path):
     stage = lines[0].index("Stage")
     flow = lines[0].index("Flow")
     return ([float(i[flow]) for i in lines[1:]], [float(i[stage]) for i in lines[1:]])
+
+def specify(project = None, stagef = None, river = None, reach = None, rs = None, nct = None, outf = None,
+            plot = None, auto = None):
+    """
+    Select options and decide what to do.  All arguments are requested interactively if not specified.
+    :param project: project path
+    :param stagef: stage file path
+    :param river: river name
+    :param reach: reach name
+    :param rs: river station for data collection
+    :param nct: how many ns to test (per generation, if auto)
+    :param outf: output file path or "" not to write one
+    :param plot: to plot results
+    :param auto: whether to use automatic optimization with NSGAII
+    """
+    project = input("Enter project path (including .prj file): ") if project is None else project
+    (flow, stage) = singleStageFile(input("Enter path to stage file: ")) if stagef is None else singleStageFile(stagef)
+    outf = input("Enter output file path or nothing to not have one: ") if outf is None else outf
+    river = input("River name: ") if river is None else river
+    reach = input("Reach name: ") if reach is None else reach
+    rs = input("River station: ") if rs is None else rs
+    auto = input("Enter Y to use automatic calibration (default: interactive): ") in ["Y", "y"] if auto is None else auto
+    plot = input("Enter N to not plot results (default: plot): ") not in ["N", "n"] if plot is None else plot
+    nct = int(input("Number of n to test each iteration: ")) if nct is None else nct
+    model = Model(project)
+
+    if not auto:
+        iterate(project = project, stage = stagef, river = river, reach = reach, rs = rs, nct = nct,
+                outf = outf, model = model, plot = plot)
+    if auto:
+        autoIterate(model = model, river = river, reach = reach, rs = rs, flow = flow, stage = stage, nct = nct,
+                    plot = plot, outf = outf)
 
 def iterate(project = None, stage = None, river = None, reach = None, rs = None, nct = None,
             rand = None, outf = None, model = None, plot = None):
@@ -60,10 +95,48 @@ def iterate(project = None, stage = None, river = None, reach = None, rs = None,
             with open(outf, "w") as f:
                 f.write(table)
 
+def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf):
+    """
+    Automatically iterate with NSGA-II
+    """
+    keys = list(tests.keys())  # ensure same order
+    evals = int(input("How many evaluations to run? "))
+    def manningEval(vars):
+        n = vars[0]
+        result = runSims(model, [n], river, reach, len(stage), range = [rs])[0][rs] # {profile: stage}
+        result = [result[ix] for ix in range(1, len(stage) + 1)] # just stages
+        metrics = minimized(fullEval(result, stage))
+        values = [metrics[key] for key in keys]
+        constraints = [-n, n - 1]
+        return values, constraints
+    c_type = "<0"
+    problem = Problem(1, len(keys), 2) # 1 decision variable, len(keys) objectives, and 2 constraints
+    problem.types[:] = Real(0.001, 1) # range of decision variable
+    problem.constraints[:] = c_type
+    problem.function = manningEval
+
+    algorithm = NSGAII(problem, population_size = nct)
+    algorithm.run(evals)
+    nondom = nondominated(algorithm.result) # nondom: list of Solutions - wanted value is variables[0]
+    nondomNs = [sol.variables[0] for sol in nondom]
+    # Minimized is the inverse of minimized
+    results = runSims(model, nondomNs, river, reach, len(stage), range = [rs])
+    resultPts = [(nondomNs[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(nondomNs))]
+    metrics = [(res[0], fullEval(res[1], stage)) for res in resultPts]
+    table = evalTable([m[0] for m in metrics], [m[1] for m in metrics])
+    print(table)
+    if plot:
+        compareAllRatingCurves(flow, stage, resultPts)
+    if (outf != ""):
+        with open(outf, "w") as f:
+            f.write(table)
+        print("Results written to file %s" % outf)
+
+
 def testrun():
-    iterate(
+    specify(
         project = "V:\\LosAngelesProjectsData\\HEC-RAS\\raspy\\DemoProject\\project.prj",
-        stage = "V:\\LosAngelesProjectsData\\HEC-RAS\\raspy_cal\\DemoStage.csv",
+        stagef = "V:\\LosAngelesProjectsData\\HEC-RAS\\raspy_cal\\DemoStage.csv",
         river = "river1",
         reach = "reach1",
         rs = "200",

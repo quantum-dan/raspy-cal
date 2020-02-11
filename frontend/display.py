@@ -54,6 +54,7 @@ def compareAllRatingCurves(flows, obs, sims):
     plt.plot(flows, obs, label = "Observed")
     for (n, sim) in sims:
         plt.plot(flows, sim, label = "Simulated (n = %.3f)" % n)
+    plt.xscale("log")
     plt.xlabel("Flow (cfs)")
     plt.ylabel("Depth (ft)")
     plt.legend()
