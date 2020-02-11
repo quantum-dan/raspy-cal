@@ -26,7 +26,7 @@ def singleStageFile(path):
     return ([float(i[flow]) for i in lines[1:]], [float(i[stage]) for i in lines[1:]])
 
 def specify(project = None, stagef = None, river = None, reach = None, rs = None, nct = None, outf = None,
-            plot = None, auto = None):
+            plot = None, auto = None, metrics = None):
     """
     Select options and decide what to do.  All arguments are requested interactively if not specified.
     :param project: project path
@@ -42,6 +42,21 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     project = input("Enter project path (including .prj file): ") if project is None else project
     (flow, stage) = singleStageFile(input("Enter path to stage file: ")) if stagef is None else singleStageFile(stagef)
     outf = input("Enter output file path or nothing to not have one: ") if outf is None else outf
+    if metrics is None:
+        metrics = [] if input("Enter Y to specify metrics: ") in ["Y", "y"] else None
+        keys = list(tests.keys())
+        if metrics == []:
+            inp = ""
+            while inp not in ["D", "d"]:
+                print("Available metrics: %s" % keys)
+                print("Selected metrics: %s" % metrics)
+                inp = input("Enter a metric to add it or D if done: ")
+                if inp in keys:
+                    metrics.append(inp)
+                elif inp not in ["D", "d"]:
+                    print("Warning: entered metric is not an option.")
+        if metrics == []:
+            metrics = None
     river = input("River name: ") if river is None else river
     reach = input("Reach name: ") if reach is None else reach
     rs = input("River station: ") if rs is None else rs
@@ -52,13 +67,13 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
 
     if not auto:
         iterate(project = project, stage = stagef, river = river, reach = reach, rs = rs, nct = nct,
-                outf = outf, model = model, plot = plot)
+                outf = outf, model = model, plot = plot, metrics = metrics)
     if auto:
         autoIterate(model = model, river = river, reach = reach, rs = rs, flow = flow, stage = stage, nct = nct,
-                    plot = plot, outf = outf)
+                    plot = plot, outf = outf, metrics = metrics)
 
 def iterate(project = None, stage = None, river = None, reach = None, rs = None, nct = None,
-            rand = None, outf = None, model = None, plot = None):
+            rand = None, outf = None, model = None, plot = None, metrics = None):
     """
     Iterate over n options until the user narrows it down to a good choice.  Note that providing an n of 0 will
     cause HEC-RAS to crash.
@@ -85,7 +100,7 @@ def iterate(project = None, stage = None, river = None, reach = None, rs = None,
         results = runSims(model, ns, river, reach, len(stage), range = [rs])
         # Complication below: results is a dictionary of {rs: {profile number: stage}}
         resultPts = [(ns[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(ns))]
-        best = evaluate(stage, resultPts) # [(parameters, metrics, sim)]
+        best = evaluate(stage, resultPts, metrics = metrics) # [(parameters, metrics, sim)]
         table = evalTable([b[0] for b in best], [b[1] for b in best])
         print(table)
         if plot:
@@ -95,11 +110,11 @@ def iterate(project = None, stage = None, river = None, reach = None, rs = None,
             with open(outf, "w") as f:
                 f.write(table)
 
-def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf):
+def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics):
     """
     Automatically iterate with NSGA-II
     """
-    keys = list(tests.keys())  # ensure same order
+    keys = metrics  # ensure same order
     evals = int(input("How many evaluations to run? "))
     def manningEval(vars):
         n = vars[0]
