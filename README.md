@@ -66,15 +66,15 @@ Low-level (support) functionality:
 * (Eventually) generate flow profiles etc from empirical data; at first, the user will need to specify the flow profiles (pyRasFile supports this use case with minor manual intervention)
 
 ## General Development Plan
-Current progress: semi-manual mode (1-iii) is available.  Next step is automatic mode (1-iv).
+Current progress: minimum feature set implemented.  Next is analysis & recommendations.
 
-1. Minimum feature set
+1. Minimum feature set - DONE
     1. Implement critical low-level functionality (run simulations, update *n* values) - DONE
     1. Implement critical mid-level functionality for semi-manual mode (compute criteria, generate parameter combinations, choose best combinations) - DONE
     1. Implement critical top-level functionality (accept inputs, display outputs, accept updated inputs & iterate) (covers both semi-manual and automatic)
         1. Text-based outputs (table of n vs error stats) - DONE
         1. Graphical outputs (comparison plots) - DONE
-    1. Implement critical mid-level functionality for automatic mode (automatic optimization)
+    1. Implement critical mid-level functionality for automatic mode (automatic optimization) - DONE
 1. Analysis & recommendations
     1. Analyze which criteria lead to best results under which geometry and flow conditions
 1. Basic improvements
@@ -93,9 +93,9 @@ Current progress: semi-manual mode (1-iii) is available.  Next step is automatic
     1. Implement calibration support tools (e.g. automatic hydrologic-hydraulic model interfacing) (this - very distant - goal would basically mean, for particular applications, "put in rainfall, geometry, and empirical flow data, get out calibrated model" or analogous)
     
 ### Rough Timeline
-1. Minimum feature set: next few weeks - by late February
-1. Analysis & recommendations: by late April
-1. Basic improvements: i and ii (important for functionality) by late May; iii-v (convenience features for external use) in fall 2020
+1. Minimum feature set: done
+1. Analysis & recommendations: by late March
+1. Basic improvements: i and ii (important for functionality) by late April; iii-v (convenience features for external use) in fall 2020
 1. Luxury improvements: low-priority continuing development with no specific timelines  
 
 ## Required API
