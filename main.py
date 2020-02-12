@@ -28,13 +28,14 @@ if __name__ == "__main__":
         specify(project = argv[1], stagef = argv[2], outf = argv[3])
     elif len(argv) == 2 and argv[1] == "LAR":  # for testing
         gage = input("Gage (F37B, F45B, F300, F319): ")
+        name = input("Output file name?  Out_<Gage>_<name>.txt, name: ")
         specify(
             project = basepath + "LAR\\FullModel.prj",
             stagef = basepath + "data\\" + gage + ".csv",
             river = locs[gage]["river"],
             reach = locs[gage]["reach"],
             rs = locs[gage]["rs"],
-            outf = basepath + "data\\Out_" + gage + ".txt",
+            outf = basepath + "data\\Out_" + gage + "_" + name + ".txt",
             plot = True,
             auto = True
         )

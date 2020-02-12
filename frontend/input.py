@@ -117,6 +117,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics):
     keys = metrics  # ensure same order
     evalf = evaluator(stage, useTests = keys)
     evals = int(input("How many evaluations to run? "))
+    count = 1
     def manningEval(vars):
         n = vars[0]
         result = runSims(model, [n], river, reach, len(stage), range = [rs])[0][rs] # {profile: stage}
@@ -124,6 +125,9 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics):
         metrics = minimized(evalf(result))
         values = [metrics[key] for key in keys]
         constraints = [-n, n - 1]
+        nonlocal count
+        print("Completed %d evaluations" % count)
+        count += 1
         return values, constraints
     c_type = "<0"
     problem = Problem(1, len(keys), 2) # 1 decision variable, len(keys) objectives, and 2 constraints
