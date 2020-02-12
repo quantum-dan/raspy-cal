@@ -72,6 +72,37 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
         autoIterate(model = model, river = river, reach = reach, rs = rs, flow = flow, stage = stage, nct = nct,
                     plot = plot, outf = outf, metrics = metrics)
 
+def iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot):
+    """
+    Run one test.
+    :param model: HEC-RAS model
+    :param river: river name
+    :param reach: reach name
+    :param rs: river station
+    :param stage: list of stages
+    :param flow: list of flows
+    :param nct: number of ns to test
+    :param rand: whether to use random ns
+    :param nmin: minimum n
+    :param nmax: maximum n
+    :param metrics: list of metrics to use
+    :param plot: whether to plot results
+    :return: [(n, metrics, sim)]
+    """
+    pspec = paramSpec("n", nmin, nmax, nct, rand)
+    ns = genParams([pspec], dicts=False)
+    ns = [round(n, 3) for n in ns]  # 3 decimal places should be sufficient, since ns < 0.001 seem to not have much effect anyway
+    print("Using ns: %s" % ns)
+    results = runSims(model, ns, river, reach, len(stage), range=[rs])
+    # Complication below: results is a dictionary of {rs: {profile number: stage}}
+    resultPts = [(ns[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(ns))]
+    best = evaluate(stage, resultPts, metrics=metrics)  # [(parameters, metrics, sim)]
+    table = evalTable([b[0] for b in best], [b[1] for b in best])
+    print(table)
+    if plot:
+        compareAllRatingCurves(flow, stage, [(i[0], i[2]) for i in best])
+    return best
+
 def iterate(project = None, stage = None, river = None, reach = None, rs = None, nct = None,
             rand = None, outf = None, model = None, plot = None, metrics = None):
     """
@@ -93,22 +124,11 @@ def iterate(project = None, stage = None, river = None, reach = None, rs = None,
     while cont:
         nmin = float(input("Enter minimum n: "))
         nmax = float(input("Enter maximum n: "))
-        pspec = paramSpec("n", nmin, nmax, nct, rand)
-        ns = genParams([pspec], dicts = False)
-        ns = [round(n, 3) for n in ns] # 3 decimal places should be sufficient, since ns < 0.001 seem to not have much effect anyway
-        print("Using ns: %s" % ns)
-        results = runSims(model, ns, river, reach, len(stage), range = [rs])
-        # Complication below: results is a dictionary of {rs: {profile number: stage}}
-        resultPts = [(ns[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(ns))]
-        best = evaluate(stage, resultPts, metrics = metrics) # [(parameters, metrics, sim)]
-        table = evalTable([b[0] for b in best], [b[1] for b in best])
-        print(table)
-        if plot:
-            compareAllRatingCurves(flow, stage, [(i[0], i[2]) for i in best])
+        best = iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot)
         cont = input("Continue?  Q or q to quit and write results: ") not in ["q", "Q"]
         if (not cont) and (outf != ""):
             with open(outf, "w") as f:
-                f.write(table)
+                f.write(evalTable([b[0] for b in best], [b[1] for b in best], string = False))
 
 def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics):
     """
@@ -151,6 +171,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics):
         with open(outf, "w") as f:
             f.write(table)
         print("Results written to file %s" % outf)
+    return metrics
 
 
 def testrun():
