@@ -26,7 +26,7 @@ def evalTable(params, metricSets, paramName = "n", string = True):
     :return: either a list of lists (inner lists = rows) or the table as a string
     """
     keys = list(metricSets[0].keys())
-    header = [space(i) for i in [paramName] + keys]
+    header = [space(i) for i in [paramName] + keys] if string else [paramName] + keys
     rows = [header]
     for ix in range(len(params)):
         row = ["%.3f" % params[ix]] + ["%.3f" % metricSets[ix][k] for k in keys]

@@ -64,7 +64,8 @@ class GUI(tk.Frame):
     def manualInterface(self):
         self.nminEntry = tk.Entry(self.inputFrame)
         self.nmaxEntry = tk.Entry(self.inputFrame)
-        self.randCheck = tk.Checkbutton(self.inputFrame, text="Random n distribution?")
+        self.randVar = tk.IntVar()
+        self.randCheck = tk.Checkbutton(self.inputFrame, text="Random n distribution?", variable=self.randVar)
 
         fields = [
             ("Minimum n", self.nminEntry),
@@ -79,18 +80,21 @@ class GUI(tk.Frame):
         tk.Button(self.iterFrame, text="Run Simulations", command=self.runSims).pack(side="bottom")
 
     def runAuto(self):
+        # For some reason, this isn't doing anything
         self.evals = int(self.evalsEntry.get())
         self.result = autoIterate(self.model, self.river, self.reach, self.rs,
                                   self.flow, self.stage, self.nct, self.plot, self.outf,
                                   self.metrics, self.evals)
+        self.displayResult()
 
     def runSims(self):
         self.nmin = float(self.nminEntry.get())
         self.nmax = float(self.nmaxEntry.get())
-        self.rand = self.randCheck.get() == 1
+        self.rand = self.randVar.get() == 1
         self.result = iteration(self.model, self.river, self.reach, self.rs, self.stage,
                                 self.flow, self.nct, self.rand, self.nmin, self.nmax,
                                 self.metrics, self.plot)
+        self.displayResult()
 
     def displayResult(self):
         if self.displayed:
@@ -98,7 +102,7 @@ class GUI(tk.Frame):
         self.resultTable = evalTable([r[0] for r in self.result], [r[1] for r in self.result])
         self.resultCsv = csv(evalTable([r[0] for r in self.result], [r[1] for r in self.result], string = False))
         self.displayFrame = tk.Frame(self.iterFrame)
-        tk.Text(self.displayFrame, text=self.resultTable).pack(side="top")
+        tk.Label(self.displayFrame, text=self.resultTable).pack(side="top")
         tk.Button(self.displayFrame, text="Save Results", command=self.writeResult).pack(side="bottom")
         self.displayFrame.pack(side="top")
         self.displayed = True
