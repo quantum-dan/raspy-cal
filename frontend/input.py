@@ -8,8 +8,9 @@ from midlevel.eval import evaluate, minimized, fullEval, tests, evaluator
 from midlevel.params import paramSpec, genParams
 from frontend.display import evalTable, compareAllRatingCurves, compareRatingCurve
 from platypus import NSGAII, Problem, Real, nondominated # https://platypus.readthedocs.io/en/latest/getting-started.html#defining-constrained-problems
-# Note: above uses local clone of Platypus because the pip version doesn't seem to work.  This is not a long-term
-# solution.
+
+def csv(list):
+    return "\n".join([",".join(row) for row in list])
 
 def singleStageFile(path):
     """
@@ -128,15 +129,15 @@ def iterate(project = None, stage = None, river = None, reach = None, rs = None,
         cont = input("Continue?  Q or q to quit and write results: ") not in ["q", "Q"]
         if (not cont) and (outf != ""):
             with open(outf, "w") as f:
-                f.write(evalTable([b[0] for b in best], [b[1] for b in best], string = False))
+                f.write(csv(evalTable([b[0] for b in best], [b[1] for b in best], string = False)))
 
-def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics):
+def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, evals = None):
     """
     Automatically iterate with NSGA-II
     """
     keys = metrics  # ensure same order
     evalf = evaluator(stage, useTests = keys)
-    evals = int(input("How many evaluations to run? "))
+    evals = int(input("How many evaluations to run? ")) if evals is None else evals
     count = 1
     def manningEval(vars):
         n = vars[0]
@@ -169,7 +170,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics):
         compareAllRatingCurves(flow, stage, resultPts)
     if outf != "":
         with open(outf, "w") as f:
-            f.write(table)
+            f.write(csv(evalTable([m[0] for m in metrics], [m[1] for m in metrics], string = False)))
         print("Results written to file %s" % outf)
     return metrics
 

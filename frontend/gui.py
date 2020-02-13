@@ -2,18 +2,19 @@
 Graphical front-end.  Just some simple inputs with which to run iterate and autoIterate.
 """
 
-from frontend.input import iteration, autoIterate
+from frontend.input import iteration, autoIterate, singleStageFile, csv
 from frontend.display import evalTable
 from midlevel.eval import tests
 from default import Model
 import tkinter as tk
 
 # iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot): [(n, metrics, sim)]
-# autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics): [(n, metrics)]
+# autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, evals = None): [(n, metrics)]
 
 class GUI(tk.Frame):
     def __init__(self, master = None):
         super().__init__(master)
+        self.displayed = False
         self.master = master
         self.pack()
         self.createWidgets()
@@ -24,6 +25,7 @@ class GUI(tk.Frame):
         self.reach = self.reachField.get()
         self.rs = self.rsField.get()
         self.stagef = self.stageField.get()
+        (self.flow, self.stage) = singleStageFile(self.stagef)
         self.nct = int(self.nField.get())
         self.outf = self.outField.get()
         self.metrics = [key for key in self.keyChecks if self.keyChecks[key].get() == 1]
@@ -32,6 +34,80 @@ class GUI(tk.Frame):
         print("Parameters: %s" % [self.project, self.river, self.reach, self.rs, self.stagef,
                                   self.nct, self.outf, self.metrics, self.plot])
 
+    def mainMenu(self):
+        self.iterFrame.destroy()
+        self.entryFrame.pack(side="top")
+        self.buttonFrame.pack(side="bottom")
+
+    def selectRunType(self, runType):
+        # runType: "auto" or "manual"
+        self.saveParameters()
+        self.model = Model(self.project)
+        self.entryFrame.pack_forget()
+        self.buttonFrame.pack_forget()
+        self.iterFrame = tk.Frame(self)
+        self.inputFrame = tk.Frame(self.iterFrame)
+        if runType == "auto":
+            self.autoInterface()
+        elif runType == "manual":
+            self.manualInterface()
+        self.inputFrame.pack(side="top")
+        tk.Button(self.iterFrame, text="Return to Main Menu", command=self.mainMenu).pack(side="bottom")
+        self.iterFrame.pack()
+
+    def autoInterface(self):
+        self.evalsEntry = tk.Entry(self.inputFrame)
+        tk.Label(self.inputFrame, text="How many evaluations to run?").grid(row=0)
+        self.evalsEntry.grid(row=0, column=1)
+        tk.Button(self.iterFrame, text="Run Automatic Calibration", command=self.runAuto).pack(side="bottom")
+
+    def manualInterface(self):
+        self.nminEntry = tk.Entry(self.inputFrame)
+        self.nmaxEntry = tk.Entry(self.inputFrame)
+        self.randCheck = tk.Checkbutton(self.inputFrame, text="Random n distribution?")
+
+        fields = [
+            ("Minimum n", self.nminEntry),
+            ("Maximum n", self.nmaxEntry),
+            ("Randomize n", self.randCheck)
+        ]
+
+        for (ix, (name, field)) in enumerate(fields):
+            tk.Label(self.inputFrame, text=name).grid(row = ix)
+            field.grid(row=ix, column=1)
+
+        tk.Button(self.iterFrame, text="Run Simulations", command=self.runSims).pack(side="bottom")
+
+    def runAuto(self):
+        self.evals = int(self.evalsEntry.get())
+        self.result = autoIterate(self.model, self.river, self.reach, self.rs,
+                                  self.flow, self.stage, self.nct, self.plot, self.outf,
+                                  self.metrics, self.evals)
+
+    def runSims(self):
+        self.nmin = float(self.nminEntry.get())
+        self.nmax = float(self.nmaxEntry.get())
+        self.rand = self.randCheck.get() == 1
+        self.result = iteration(self.model, self.river, self.reach, self.rs, self.stage,
+                                self.flow, self.nct, self.rand, self.nmin, self.nmax,
+                                self.metrics, self.plot)
+
+    def displayResult(self):
+        if self.displayed:
+            self.displayFrame.destroy()
+        self.resultTable = evalTable([r[0] for r in self.result], [r[1] for r in self.result])
+        self.resultCsv = csv(evalTable([r[0] for r in self.result], [r[1] for r in self.result], string = False))
+        self.displayFrame = tk.Frame(self.iterFrame)
+        tk.Text(self.displayFrame, text=self.resultTable).pack(side="top")
+        tk.Button(self.displayFrame, text="Save Results", command=self.writeResult).pack(side="bottom")
+        self.displayFrame.pack(side="top")
+        self.displayed = True
+
+    def writeResult(self):
+        with open(self.outf, "w") as f:
+            f.write(self.resultCsv)
+
+
     def createWidgets(self):
         self.keys = list(tests.keys())
 
@@ -39,16 +115,16 @@ class GUI(tk.Frame):
 
         # Entries
         self.entryFrame = tk.Frame(self)
-        self.projectField = tk.Entry(self.entryFrame)
-        self.riverField = tk.Entry(self.entryFrame)
-        self.reachField = tk.Entry(self.entryFrame)
-        self.rsField = tk.Entry(self.entryFrame)
-        self.stageField = tk.Entry(self.entryFrame)
-        self.nField = tk.Entry(self.entryFrame)
-        self.outField = tk.Entry(self.entryFrame)
+        self.projectField = tk.Entry(self.entryFrame, width=100)
+        self.riverField = tk.Entry(self.entryFrame, width=100)
+        self.reachField = tk.Entry(self.entryFrame, width=100)
+        self.rsField = tk.Entry(self.entryFrame, width=100)
+        self.stageField = tk.Entry(self.entryFrame, width=100)
+        self.nField = tk.Entry(self.entryFrame, width=100)
+        self.outField = tk.Entry(self.entryFrame, width=100)
         self.metricField = tk.Frame(self.entryFrame)
         self.plotField = tk.Checkbutton(self.entryFrame, text="Plot?", variable=self.plotInt)
-        self.saveButton = tk.Button(self.entryFrame, text="Save", command=self.saveParameters)
+        # self.saveButton = tk.Button(self.entryFrame, text="Save", command=self.saveParameters)
 
         self.keyChecks = {}
 
@@ -67,8 +143,7 @@ class GUI(tk.Frame):
             ("# ns To Test", self.nField),
             ("Output File Path", self.outField),
             ("Metrics", self.metricField),
-            ("Plot", self.plotField),
-            ("Save Settings", self.saveButton)
+            ("Plot", self.plotField)
         ]
 
         for (ix, (name, field)) in enumerate(fields):
@@ -78,9 +153,9 @@ class GUI(tk.Frame):
         self.entryFrame.pack(side="top")
 
         self.buttonFrame = tk.Frame(self)
-        self.runAuto = tk.Button(self.buttonFrame, text = "Automatic Calibration", command = lambda: 1)
+        self.runAuto = tk.Button(self.buttonFrame, text = "Automatic Calibration", command=lambda: self.selectRunType("auto"))
         self.runAuto.pack(side="left")
-        self.runItv = tk.Button(self.buttonFrame, text = "Interactive Calibration", command = lambda: 1)
+        self.runItv = tk.Button(self.buttonFrame, text = "Interactive Calibration", command = lambda: self.selectRunType("manual"))
         self.runItv.pack(side = "right")
         self.buttonFrame.pack(side = "bottom")
 
