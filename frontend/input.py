@@ -97,7 +97,7 @@ def iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metri
     results = runSims(model, ns, river, reach, len(stage), range=[rs])
     # Complication below: results is a dictionary of {rs: {profile number: stage}}
     resultPts = [(ns[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(ns))]
-    best = evaluate(stage, resultPts, metrics=metrics)  # [(parameters, metrics, sim)]
+    best = evaluate(stage, resultPts, metrics=metrics, n=len(ns)//5)  # [(parameters, metrics, sim)]
     table = evalTable([b[0] for b in best], [b[1] for b in best])
     print(table)
     if plot:
@@ -166,12 +166,12 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     metrics = [(res[0], evalf(res[1])) for res in resultPts]
     table = evalTable([m[0] for m in metrics], [m[1] for m in metrics])
     print(table)
-    if plot:
-        compareAllRatingCurves(flow, stage, resultPts)
     if outf != "":
         with open(outf, "w") as f:
             f.write(csv(evalTable([m[0] for m in metrics], [m[1] for m in metrics], string = False)))
         print("Results written to file %s" % outf)
+    if plot:
+        compareAllRatingCurves(flow, stage, resultPts)
     return metrics
 
 

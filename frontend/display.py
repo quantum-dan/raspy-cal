@@ -47,6 +47,9 @@ def compareRatingCurve(flows, obs, sim):
     plt.legend()
     plt.show()
 
+# see https://matplotlib.org/3.1.0/api/markers_api.html
+markers = [c for c in ".ov^<>1234sP*+xXDd|_"] + ["$%s$" % (chr(c + ord("A"))) for c in range(26)]
+
 def compareAllRatingCurves(flows, obs, sims):
     """
     Compare all provided rating curves.
@@ -55,11 +58,13 @@ def compareAllRatingCurves(flows, obs, sims):
     :param sims: list of (n, [simulated depths])
     """
     plt.plot(flows, obs, label = "Observed")
-    for (n, sim) in sims:
-        plt.plot(flows, sim, label = "Simulated (n = %.3f)" % n)
+    for (ix, (n, sim)) in enumerate(sims):
+        plt.plot(flows, sim, label = "Simulated (n = %.3f)" % n, marker=markers[ix % len(markers)])
     plt.xscale("log")
+    plt.yscale("log")
     plt.xlabel("Flow (cfs)")
     plt.ylabel("Depth (ft)")
+    plt.title("Rating Curves Comparison")
     plt.legend()
     plt.show()
 
