@@ -139,3 +139,4 @@ Required methods:
                 * of numbers: for each cross section, set the main channel n to the corresponding value from the list.
             * dictionary ({rs: [...]): set ns by cross section specifically.  The values can be either numbers or lists of numbers, which works the same as the list version above.
             * number: set all the main channel ns to the specified value.
+        * setSteadyFlows(river, reach, rs, flows): set the steady flows at that location (or the top cross-section if rs is None).  `flows` is a list of flows.
