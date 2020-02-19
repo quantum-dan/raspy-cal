@@ -3,17 +3,17 @@ Python automatic calibrator for HEC-RAS.  RAS + Python = raspy.
 
 ## Usage & Installation
 
-`python main.py` for interactive use.
+`python main.py GUI` to launch a graphical interface.  `python main.py` for text-based interactive use.
 
-The stage (empirical data) file requested must be a CSV with a column named Stage (a flow column may be included for ease of use, but is currently ignored by the program).  The stage values must be in the same order as the flow profiles in the HEC-RAS steady flow data.
+The stage (empirical data) file requested must be a CSV with columns named Flow and Stage.  The stage values must be in the same order as the flow profiles in the HEC-RAS steady flow data.
 
-At the current stage of development, only interactive/semi-manual calibration is available, where raspy-cal simulates several scenarios and displays the results so that the user can select a new set of simulation parameters.  Currently, the user must have a fully-defined HEC-RAS project including appropriate flow profiles and geometry, in addition to providing empirical data.  See [development progress](#General-Development-Plan) below.
+Currently, the user must have a fully-defined HEC-RAS project including appropriate flow profiles and geometry, in addition to providing empirical data.  See [development progress](#General-Development-Plan) below.
 
 ### Dependencies
 
 Some Model object which supports the required functionality as described [below](#Required-API).  The raspy package, which provides such an API, is
 included as a submodule.  The raspy API can be accessed through `default.Model` if raspy is somewhere where it can be accessed (e.g. in its subdirectory
-as a submodule).  Running through `main.py` will use raspy.
+as a submodule).  Running through `main.py` will use raspy, which is automatically cloned as well as a submodule if cloning from git.
 
 Packages:
 * scipy
@@ -27,19 +27,19 @@ Raspy-cal is only tested with Python 3.  It may or may not work with Python 2.
 
 `git clone https://github.com/quantum-dan/raspy-cal raspy_cal` (clone into `raspy_cal` if you want to import it from elsewhere, as `raspy-cal` isn't a valid Python name).
 
-The following will install all dependencies and run raspy-cal using raspy for HEC-RAS access:
+The following will install all dependencies and run raspy-cal (with the GUI) using raspy for HEC-RAS access:
 
 ```
 git clone https://github.com/quantum-dan/raspy-cal
 pip install --user scipy HydroErr matplotlib platypus-opt
 cd raspy-cal
-python main.py
+python main.py GUI
 ```
 
 ## Functionality & Approach
 
 ### General Functionality
-Raspy-cal will support both fully-automatic and partially-manual calibration modes.
+Raspy-cal supports both fully-automatic and partially-manual calibration modes.
 
 In manual mode, the user will specify a range of calibration parameters and a set of criteria.  The program will run a specified number of simulations across the range of parameters, comparing the results of each to the relevant criteria.  Then, it will show the user comparison plots (rating curves) of the top *n* parameter sets based on the criteria.  The user will use that information to specify a new range, and repeat 
 until the user is satisfied with the results.
@@ -66,7 +66,7 @@ Low-level (support) functionality:
 * (Eventually) generate flow profiles etc from empirical data; at first, the user will need to specify the flow profiles (pyRasFile supports this use case with minor manual intervention)
 
 ## General Development Plan
-Current progress: minimum feature set implemented.  Next is analysis & recommendations.
+Current progress: minimum feature set implemented.  Basic GUI implemented.  Next is analysis & recommendations.
 
 1. Minimum feature set - DONE
     1. Implement critical low-level functionality (run simulations, update *n* values) - DONE
@@ -82,14 +82,13 @@ Current progress: minimum feature set implemented.  Next is analysis & recommend
     1. Implement multi-target calibration support
         1. Multiple flow ranges
         1. Multiple locations/empirical data sets (manual range specification)
-    1. Implement automatic generic-use outputs (for use by interfaces)
+    1. Implement automatic generic-use outputs (for use by interfaces) - DONE (outputs CSV of n vs metrics)
     1. Implement R interface
     1. Implement generic config file + command line interface for use by other programs
 1. Luxury improvements
     1. Implement user-friendly setup tool (e.g. via interactive command line script) so that minimal computer skill is required
-    1. Implement graphical setup tool
     1. Implement any necessary changes to make the tool fully generic with respect to both parameters and criteria, allowing it to be used outside of HEC-RAS (if this is not already the case naturally)
-    1. Implement full GUI
+    1. Implement full GUI - DONE
     1. Implement calibration support tools (e.g. automatic hydrologic-hydraulic model interfacing) (this - very distant - goal would basically mean, for particular applications, "put in rainfall, geometry, and empirical flow data, get out calibrated model" or analogous)
     
 ### Rough Timeline

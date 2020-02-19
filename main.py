@@ -1,4 +1,5 @@
 from frontend.input import iterate, specify
+from frontend import gui
 from sys import argv
 
 msg = """Note: in order to run somewhat more economically, you can use:
@@ -48,7 +49,7 @@ if __name__ == "__main__":
                 outf = basepath + "raspy_cal\\DemoOut.txt"
             )
         if argv[1] == "GUI":  # Test the GUI (when implemented)
-            pass
+            gui.main()
     else:
         specify()
 

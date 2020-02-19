@@ -41,7 +41,8 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     :param auto: whether to use automatic optimization with NSGAII
     """
     project = input("Enter project path (including .prj file): ") if project is None else project
-    (flow, stage) = singleStageFile(input("Enter path to stage file: ")) if stagef is None else singleStageFile(stagef)
+    stagef = input("Enter path to stage file: ") if stagef is None else stagef
+    (flow, stage) = singleStageFile(stagef)
     outf = input("Enter output file path or nothing to not have one: ") if outf is None else outf
     if metrics is None:
         metrics = [] if input("Enter Y to specify metrics: ") in ["Y", "y"] else None
@@ -139,6 +140,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     evalf = evaluator(stage, useTests = keys)
     evals = int(input("How many evaluations to run? ")) if evals is None else evals
     count = 1
+    print("Running automatic calibration")
     def manningEval(vars):
         n = vars[0]
         result = runSims(model, [n], river, reach, len(stage), range = [rs])[0][rs] # {profile: stage}

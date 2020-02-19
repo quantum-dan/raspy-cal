@@ -11,6 +11,8 @@ import tkinter as tk
 # iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot): [(n, metrics, sim)]
 # autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, evals = None): [(n, metrics)]
 
+defaultBase = "V:\\LosAngelesProjectsData\\HEC-RAS\\"
+
 class GUI(tk.Frame):
     def __init__(self, master = None):
         super().__init__(master)
@@ -52,14 +54,14 @@ class GUI(tk.Frame):
         elif runType == "manual":
             self.manualInterface()
         self.inputFrame.pack(side="top")
+        self.iterFrame.pack(side="bottom")
         tk.Button(self.iterFrame, text="Return to Main Menu", command=self.mainMenu).pack(side="bottom")
-        self.iterFrame.pack()
 
     def autoInterface(self):
         self.evalsEntry = tk.Entry(self.inputFrame)
         tk.Label(self.inputFrame, text="How many evaluations to run?").grid(row=0)
         self.evalsEntry.grid(row=0, column=1)
-        tk.Button(self.iterFrame, text="Run Automatic Calibration", command=self.runAuto).pack(side="bottom")
+        tk.Button(self.iterFrame, text="Run Automatic Calibration", command=self.runGenetic).pack(side="bottom")
 
     def manualInterface(self):
         self.nminEntry = tk.Entry(self.inputFrame)
@@ -79,8 +81,8 @@ class GUI(tk.Frame):
 
         tk.Button(self.iterFrame, text="Run Simulations", command=self.runSims).pack(side="bottom")
 
-    def runAuto(self):
-        # For some reason, this isn't doing anything
+    def runGenetic(self):
+        print("Launching automatic calibration")
         self.evals = int(self.evalsEntry.get())
         self.result = autoIterate(self.model, self.river, self.reach, self.rs,
                                   self.flow, self.stage, self.nct, self.plot, self.outf,
@@ -111,6 +113,12 @@ class GUI(tk.Frame):
         with open(self.outf, "w") as f:
             f.write(self.resultCsv)
 
+    def autoPopulate(self):
+        base = self.baseField.get()
+        base = base if base != "" else defaultBase
+        self.projectField.insert(0, base)
+        self.stageField.insert(0, base)
+        self.outField.insert(0, base)
 
     def createWidgets(self):
         self.keys = list(tests.keys())
@@ -119,6 +127,8 @@ class GUI(tk.Frame):
 
         # Entries
         self.entryFrame = tk.Frame(self)
+        self.baseField = tk.Entry(self.entryFrame, width=100)
+        self.baseButton = tk.Button(self.entryFrame, text="Populate", command=self.autoPopulate)
         self.projectField = tk.Entry(self.entryFrame, width=100)
         self.riverField = tk.Entry(self.entryFrame, width=100)
         self.reachField = tk.Entry(self.entryFrame, width=100)
@@ -128,7 +138,6 @@ class GUI(tk.Frame):
         self.outField = tk.Entry(self.entryFrame, width=100)
         self.metricField = tk.Frame(self.entryFrame)
         self.plotField = tk.Checkbutton(self.entryFrame, text="Plot?", variable=self.plotInt)
-        # self.saveButton = tk.Button(self.entryFrame, text="Save", command=self.saveParameters)
 
         self.keyChecks = {}
 
@@ -139,6 +148,8 @@ class GUI(tk.Frame):
             self.keyChecks[key] = var
 
         fields = [
+            ("Base Path (optional)", self.baseField),
+            ("Apply Base Path (optional)", self.baseButton),
             ("Project File Path", self.projectField),
             ("River Name", self.riverField),
             ("Reach Name", self.reachField),
