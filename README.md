@@ -3,11 +3,19 @@ Python automatic calibrator for HEC-RAS.  RAS + Python + Calibrator = raspy-cal.
 
 ## Usage & Installation
 
-`python main.py` to launch a graphical interface.  `python main.py CMD` for text-based interactive use.
+### Windows Executable
+
+Download `raspy-cal.exe` from Releases and run it.  The executable should work without any dependencies.  Note that it will take quite some time to start up; it is not frozen.  The current version assumes HEC-RAS 5.0.7.  This will be changed in a future release.
+
+### General
 
 The stage (empirical data) file requested must be a CSV with columns named Flow and Stage.  The stage values must be in the same order as the flow profiles in the HEC-RAS steady flow data.
 
 Currently, the user must have a fully-defined HEC-RAS project including appropriate flow profiles and geometry, in addition to providing empirical data.  See [development progress](#General-Development-Plan) below.
+
+### Command-Line Usage
+
+`python main.py` to launch a graphical interface.  `python main.py CMD` for text-based interactive use.
 
 ### Dependencies
 
@@ -35,6 +43,12 @@ pip install --user scipy HydroErr matplotlib platypus-opt
 cd raspy-cal
 python main.py GUI
 ```
+
+### Building a Standalone Executable
+
+Requires pyinstaller (`pip install pyinstaller`).
+
+From the raspy-cal directory, run: `pyinstaller -F main.py`.  This will build a standalone executable in the `dist` subdirectory (which will be created).
 
 ## Functionality & Approach
 
