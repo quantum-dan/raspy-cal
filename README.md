@@ -1,9 +1,9 @@
 # raspy-cal
-Python automatic calibrator for HEC-RAS.  RAS + Python = raspy.
+Python automatic calibrator for HEC-RAS.  RAS + Python + Calibrator = raspy-cal.
 
 ## Usage & Installation
 
-`python main.py GUI` to launch a graphical interface.  `python main.py` for text-based interactive use.
+`python main.py` to launch a graphical interface.  `python main.py CMD` for text-based interactive use.
 
 The stage (empirical data) file requested must be a CSV with columns named Flow and Stage.  The stage values must be in the same order as the flow profiles in the HEC-RAS steady flow data.
 
@@ -41,12 +41,12 @@ python main.py GUI
 ### General Functionality
 Raspy-cal supports both fully-automatic and partially-manual calibration modes.
 
-In manual mode, the user will specify a range of calibration parameters and a set of criteria.  The program will run a specified number of simulations across the range of parameters, comparing the results of each to the relevant criteria.  Then, it will show the user comparison plots (rating curves) of the top *n* parameter sets based on the criteria.  The user will use that information to specify a new range, and repeat 
+In manual mode, the user specifies a range of calibration parameters and a set of criteria.  The program runs a specified number of simulations across the range of parameters, comparing the results of each to the relevant criteria.  Then, it shows the user comparison plots (rating curves) of the top *n* parameter sets based on the criteria.  The user uses that information to specify a new range, and repeat 
 until the user is satisfied with the results.
 
-In automatic mode, the user will also specify a range of calibration parameters and a set of criteria.  Then, the program will use a multi-objective genetic algorithm (likely NSGA-II) to optimize for a specified number of generations with a specified number of tests per generation.  After running the last generation, the entire generation will be displayed as in manual mode, as well as plots showing the best results (hopefully approximating the Pareto frontier) for any two criteria.  This will allow the user to select the overall best choice.
+In automatic mode, the user also specifies a range of calibration parameters and a set of criteria.  Then, the program uses a multi-objective genetic algorithm (NSGA-II with possible future support for other algorithms) to optimize for a specified number of generations with a specified number of tests per generation.  After running the last generation, the non-dominated results are displayed as in manual mode, as well as a plot showing the comparison plots for all of the non-dominated results.  This allows the user to select the overall best choice.
 
-In both cases, the user will initially have to specify a particular range to calibrate and calibrate against just one empirical data set.  Later, the program will support many data sets covering different ranges.
+In both cases, the user currently has to specify a particular range to calibrate and calibrate against just one empirical data set.  Later, the program will support many data sets covering different ranges.
 
 ### Detailed Approach
 Top-level (user-facing) functionality:
@@ -58,7 +58,7 @@ Mid-level (doing the work) functionality:
 * Compute criteria
 * Choose parameter combinations
 * Select best combinations
-* Use automatic optimization (later)
+* Use automatic optimization
 
 Low-level (support) functionality:
 * Run simulations
