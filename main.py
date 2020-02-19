@@ -24,7 +24,6 @@ locs = {
 basepath = "V:\\LosAngelesProjectsData\\HEC-RAS\\raspy_cal\\"  # for testing
 
 if __name__ == "__main__":
-    print(msg)
     if len(argv) == 4:
         specify(project = argv[1], stagef = argv[2], outf = argv[3])
     elif len(argv) == 2:  # for testing
@@ -41,16 +40,20 @@ if __name__ == "__main__":
                 plot = True,
                 auto = True
             )
-        if argv[1] == "CMD":  # Test the text interface
+        if argv[1] == "CMDTEST":  # Test the text interface
             basepath = "V:\\LosAngelesProjectsData\\HEC-RAS\\"
             specify(
                 project = basepath + "raspy\\DemoProject\\project.prj",
                 stagef = basepath + "raspy_cal\\DemoStage.csv",
                 outf = basepath + "raspy_cal\\DemoOut.txt"
             )
+        if argv[1] == "CMD":
+            print(msg)
+            specify()
         if argv[1] == "GUI":  # Test the GUI (when implemented)
             gui.main()
     else:
-        specify()
+        print("Run python main.py CMD to use the command line version.")
+        gui.main()
 
 
