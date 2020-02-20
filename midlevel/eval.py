@@ -52,16 +52,25 @@ def fullEval(sim, obs):
         test: tests[test](sim, obs) for test in tests
     }
 
-def evaluator(obs, useTests = None):
+def evaluator(obs, useTests = None, correctDatum = True):
     """
     Return a function which will return either all (if tests is None) or selected comparison
     stats for a set of simulated values, given the set of observed values.
     :param useTests: list of strings (test names) or None
+    :param correctDatum: whether to adjust the datum between obs and sim
     """
+
+    def adjustDatum(sim):
+        if not correctDatum:
+            return sim
+        count = len(obs) // 20 + 1  # Bottom 5%, +1 in case len(obs) < 20
+        adj = (sum(obs[:count]) - sum(sim[:count])) / count  # Average difference
+        return [s[i] + adj for s in sim]
+
     if useTests is None:
-        return lambda sim: fullEval(sim, obs)
+        return lambda sim: fullEval(adjustDatum(sim), obs)
     else:
-        return lambda sim: {test: tests[test](sim, obs) for test in useTests}
+        return lambda sim: {test: tests[test](adjustDatum(sim), obs) for test in useTests}
 
 def nonDominated(points):
     """

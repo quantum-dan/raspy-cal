@@ -162,7 +162,6 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     algorithm.run(evals)
     nondom = nondominated(algorithm.result) # nondom: list of Solutions - wanted value is variables[0]
     nondomNs = [sol.variables[0] for sol in nondom]
-    # Minimized is the inverse of minimized
     results = runSims(model, nondomNs, river, reach, len(stage), range = [rs])
     resultPts = [(nondomNs[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(nondomNs))]
     metrics = [(res[0], evalf(res[1])) for res in resultPts]
