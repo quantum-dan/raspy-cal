@@ -63,8 +63,10 @@ def evaluator(obs, useTests = None, correctDatum = True):
     def adjustDatum(sim):
         if not correctDatum:
             return sim
+        obs_s = sorted(obs)
+        sim_s = sorted(sim)
         count = len(obs) // 20 + 1  # Bottom 5%, +1 in case len(obs) < 20
-        adj = (sum(obs[:count]) - sum(sim[:count])) / count  # Average difference
+        adj = (sum(obs_s[:count]) - sum(sim_s[:count])) / count  # Average difference
         return [s[i] + adj for s in sim]
 
     if useTests is None:
