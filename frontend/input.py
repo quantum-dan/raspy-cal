@@ -8,9 +8,66 @@ from midlevel.eval import evaluate, minimized, fullEval, tests, evaluator
 from midlevel.params import paramSpec, genParams
 from frontend.display import evalTable, compareAllRatingCurves, compareRatingCurve
 from platypus import NSGAII, Problem, Real, nondominated # https://platypus.readthedocs.io/en/latest/getting-started.html#defining-constrained-problems
+from urllib.request import urlopen
 
 def csv(list):
     return "\n".join([",".join(row) for row in list])
+
+def usgsURL(gage, end = None, start=None, period=None):
+    """
+    Generate USGS gage data url.
+    :param gage: gage number
+    :param start: start date (yyyy-mm-dd)
+    :param end: end date
+    :param period: number of days to retrieve (int)
+    :return: the URL
+    """
+    # Period: https://nwis.waterdata.usgs.gov/ca/nwis/uv/?cb_00060=on&cb_00065=on&format=rdb&site_no=09429100&period=500&begin_date=2020-02-17&end_date=2020-02-24
+    # Date range: https://waterdata.usgs.gov/ca/nwis/uv?cb_00060=on&cb_00065=on&format=rdb&site_no=09423350&period=&begin_date=2020-02-17&end_date=2020-02-24
+    # format order: site_no, period, begin_date, end_date - all strings
+    # Period, begin_date can each be left empty if the other is specified
+    base = "https://nwis.waterdata.usgs.gov/ca/nwis/uv/?cb_00060=on&cb_00065=on&format=rdb&site_no=%s&period=%s&begin_date=%s&end_date=%s"
+    start = "" if start is None else start
+    period = "" if period is None else str(period)
+    end = "" if end is None else end
+    return base % (gage, period, start, end)
+
+def getUSGSData(gage, end = None, start = None, period = None, urlFunc = usgsURL):
+    """
+    Retrieve USGS gage data for the given gage.
+    :param gage: gage number
+    :param end: end date (yyyy-mm-dd)
+    :param start: start date
+    :param period: number of days to retrieve data for
+    :param urlFunc: url generator function (usually should be left as default) (arguments gage, start, end, period)
+    :return: [(flow, stage)]
+    """
+    # identify flow and stage
+    flown = "00060"
+    stagen = "00065"
+    url = urlFunc(gage=gage, start=start, end=end, period=period)
+    with urlopen(url) as res:
+        usgsBytes = res.read()
+    usgs = usgsBytes.decode("utf-8")
+    lines = usgs.split("\n")
+    dataIx = 0
+    while dataIx < len(lines):
+        if lines[dataIx][0] != "#":  # Find first data line (not commented)
+            break
+        dataIx += 1
+    rows = [l.split("\t") for l in lines[dataIx:]]
+    flowcol = 0
+    stagecol = 0
+    for (ix, item) in enumerate(rows[0]):
+        if item.endswith(flown):
+            flowcol = ix
+        if item.endswith(stagen):
+            stagecol = ix
+    return [
+        (row[flowcol], row[stagecol]) for row in rows[2:]  # skip first 2 rows which are headers, not data
+    ]
+
+
 
 def singleStageFile(path):
     """
