@@ -27,7 +27,7 @@ def singleStageFile(path):
     return ([float(i[flow]) for i in lines[1:]], [float(i[stage]) for i in lines[1:]])
 
 def specify(project = None, stagef = None, river = None, reach = None, rs = None, nct = None, outf = None,
-            plot = None, auto = None, metrics = None):
+            plot = None, auto = None, metrics = None, fileN = None, slope = None):
     """
     Select options and decide what to do.  All arguments are requested interactively if not specified.
     :param project: project path
@@ -44,6 +44,10 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     stagef = input("Enter path to stage file: ") if stagef is None else stagef
     (flow, stage) = singleStageFile(stagef)
     outf = input("Enter output file path or nothing to not have one: ") if outf is None else outf
+    fileN = input("Enter flow file number to write (default 01): ") if fileN is None else fileN
+    fileN = "01" if fileN == "" else fileN
+    slope = input("Enter slope for normal depth (default 0.001): ") if slope is None else slope
+    slope = float(0.001) if slope == "" else float(slope)
     if metrics is None:
         metrics = [] if input("Enter Y to specify metrics: ") in ["Y", "y"] else None
         keys = list(tests.keys())
@@ -66,6 +70,7 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     plot = input("Enter N to not plot results (default: plot): ") not in ["N", "n"] if plot is None else plot
     nct = int(input("Number of n to test each iteration: ")) if nct is None else nct
     model = Model(project)
+    model.params.setSteadyFlows(river, reach, rs=None, flows=flow, slope=slope, fileN=fileN)
 
     if not auto:
         iterate(project = project, stage = stagef, river = river, reach = reach, rs = rs, nct = nct,

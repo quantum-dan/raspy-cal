@@ -28,6 +28,8 @@ class GUI(tk.Frame):
         self.rs = self.rsField.get()
         self.stagef = self.stageField.get()
         (self.flow, self.stage) = singleStageFile(self.stagef)
+        self.normalSlope = (lambda s: 0.001 if s == "" else float(s))(self.slopeField.get())
+        self.fileN = (lambda n: "01" if n == "" else n)(self.fileNField.get())
         self.nct = int(self.nField.get())
         self.outf = self.outField.get()
         self.metrics = [key for key in self.keyChecks if self.keyChecks[key].get() == 1]
@@ -45,6 +47,9 @@ class GUI(tk.Frame):
         # runType: "auto" or "manual"
         self.saveParameters()
         self.model = Model(self.project)
+        self.model.params.setSteadyFlows(self.river, self.reach, rs=None, flows=self.flow, slope=self.normalSlope,
+                                         fileN=self.fileN)
+
         self.entryFrame.pack_forget()
         self.buttonFrame.pack_forget()
         self.iterFrame = tk.Frame(self)
@@ -134,6 +139,8 @@ class GUI(tk.Frame):
         self.reachField = tk.Entry(self.entryFrame, width=100)
         self.rsField = tk.Entry(self.entryFrame, width=100)
         self.stageField = tk.Entry(self.entryFrame, width=100)
+        self.slopeField = tk.Entry(self.entryFrame, width=100)
+        self.fileNField = tk.Entry(self.entryFrame, width=100)
         self.nField = tk.Entry(self.entryFrame, width=100)
         self.outField = tk.Entry(self.entryFrame, width=100)
         self.metricField = tk.Frame(self.entryFrame)
@@ -155,6 +162,8 @@ class GUI(tk.Frame):
             ("Reach Name", self.reachField),
             ("River Station", self.rsField),
             ("Stage File Path", self.stageField),
+            ("Slope for Normal Depth", self.slopeField),
+            ("Flow file number to write (e.g. 01)", self.fileNField),
             ("# ns To Test", self.nField),
             ("Output File Path", self.outField),
             ("Metrics", self.metricField),
