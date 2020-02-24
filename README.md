@@ -11,7 +11,7 @@ Download `raspy-cal.exe` from Releases and run it.  The executable should work w
 
 The stage (empirical data) file requested must be a CSV with columns named Flow and Stage.  The stage values must be in the same order as the flow profiles in the HEC-RAS steady flow data.
 
-Currently, the user must have a fully-defined HEC-RAS project including appropriate flow profiles and geometry, in addition to providing empirical data.  See [development progress](#General-Development-Plan) below.
+Currently, the user must have a fully-defined HEC-RAS project including appropriate geometry, plan, and an empty flow file, in addition to providing empirical data.  The flow data will be generated from the provided empirical data as long as a flow file is available and the plan is set up to use it. The flow file does not have to be empty, but the selected one will be overwritten.  See [development progress](#General-Development-Plan) below.
 
 ### Command-Line Usage
 
@@ -41,7 +41,7 @@ The following will install all dependencies and run raspy-cal (with the GUI) usi
 git clone https://github.com/quantum-dan/raspy-cal
 pip install --user scipy HydroErr matplotlib platypus-opt
 cd raspy-cal
-python main.py GUI
+python main.py
 ```
 
 ### Building a Standalone Executable
@@ -92,7 +92,7 @@ Current progress: minimum feature set implemented.  Basic GUI implemented.  Next
 1. Analysis & recommendations
     1. Analyze which criteria lead to best results under which geometry and flow conditions
 1. Basic improvements
-    1. Implement automatic data preparation from empirical data (flow profiles etc)
+    1. Implement automatic data preparation from empirical data (flow profiles etc) - DONE
     1. Implement multi-target calibration support
         1. Multiple flow ranges
         1. Multiple locations/empirical data sets (manual range specification)
@@ -100,7 +100,6 @@ Current progress: minimum feature set implemented.  Basic GUI implemented.  Next
     1. Implement R interface
     1. Implement generic config file + command line interface for use by other programs
 1. Luxury improvements
-    1. Implement user-friendly setup tool (e.g. via interactive command line script) so that minimal computer skill is required
     1. Implement any necessary changes to make the tool fully generic with respect to both parameters and criteria, allowing it to be used outside of HEC-RAS (if this is not already the case naturally)
     1. Implement full GUI - DONE
     1. Implement calibration support tools (e.g. automatic hydrologic-hydraulic model interfacing) (this - very distant - goal would basically mean, for particular applications, "put in rainfall, geometry, and empirical flow data, get out calibrated model" or analogous)
@@ -139,4 +138,4 @@ Required methods:
                 * of numbers: for each cross section, set the main channel n to the corresponding value from the list.
             * dictionary ({rs: [...]): set ns by cross section specifically.  The values can be either numbers or lists of numbers, which works the same as the list version above.
             * number: set all the main channel ns to the specified value.
-        * setSteadyFlows(river, reach, rs, flows): set the steady flows at that location (or the top cross-section if rs is None).  `flows` is a list of flows.
+        * setSteadyFlows(river, reach, rs, flows, slope, fileN, hecVer): set the steady flows at that location (or the top cross-section if rs is None).  `flows` is a list of flows.  `rs` can be None, in which case it will use the uppermost river station in the reach.  `slope` is the slope for normal depth as a boundary condition.  `fileN` is the flow file number as a string (e.g. "01").  `hecVer` is the HEC-RAS version, and must be optional.
