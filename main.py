@@ -29,17 +29,23 @@ if __name__ == "__main__":
     elif len(argv) == 2:  # for testing
         if argv[1] == "LAR":  # Test with LA project
             gage = input("Gage (F37B, F45B, F300, F319): ")
-            name = input("Output file name?  Out_<Gage>_<name>.txt, name: ")
-            specify(
-                project = basepath + "LAR\\FullModel.prj",
-                stagef = basepath + "data\\" + gage + ".csv",
-                river = locs[gage]["river"],
-                reach = locs[gage]["reach"],
-                rs = locs[gage]["rs"],
-                outf = basepath + "data\\Out_" + gage + "_" + name + ".txt",
-                plot = True,
-                auto = True
-            )
+            for metric in ["r2", "pbias", "rmse", "ks_pval", "ks_stat", "paired", "mae", "nse"]:
+                print("Running %s with %s" % (gage, metric))
+                specify(
+                    project = basepath + "LAR\\FullModel.prj",
+                    stagef = basepath + "data\\" + gage + ".csv",
+                    river = locs[gage]["river"],
+                    reach = locs[gage]["reach"],
+                    rs = locs[gage]["rs"],
+                    outf = basepath + "data\\Out_" + gage + "_" + metric + ".txt",
+                    plot = True,
+                    auto = True,
+                    metrics=[metric],
+                    nct=10,
+                    evals=50,
+                    fileN="05",
+                    slope=0.001
+                )
         if argv[1] == "CMDTEST":  # Test the text interface
             basepath = "V:\\LosAngelesProjectsData\\HEC-RAS\\"
             specify(

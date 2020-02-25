@@ -68,6 +68,34 @@ def getUSGSData(gage, end = None, start = None, period = None, urlFunc = usgsURL
         (row[flowcol], row[stagecol]) for row in rows[2:] if len(row) > stagecol
     ]
 
+def prepareUSGSData(usgsData, flowcount = 100, log = True):
+    """
+    Prepare flow and stage for use.  Returns a roughly evenly distributed set of flows across the relevant
+    range.
+    :param usgsData: usgs data as returned by getUSGSData - [(flow, stage)]
+    :param flowcount: how many flows to return
+    :param log: whether to evenly distribute logarithmically (alternative: linearly)
+    :return: (flows, stages)
+    """
+    sortedData = sorted(usgsData, key=lambda d: d[0])  # sort by flow rate
+    # Range: either largest / smallest or largest * smallest
+    rng = sortedData[-1][0] / sortedData[0][0] if log else sortedData[-1][0] - sortedData[0][0]
+    # flowcount - 1 steps
+    step = rng ** (1/(flowcount - 1)) if log else rng / (flowcount - 1)
+    flow = [sortedData[0][0]]
+    stage = [sortedData[0][1]]
+    first = sortedData[0][0]
+    vals = [first * step ** ix if log else first + step + ix for ix in range(1, flowcount)]
+    ixv = 0
+    for (fl, st) in sortedData:
+        if fl >= vals[ixv]:
+            flow.append(fl)
+            stage.append(st)
+            ixv += 1
+        if ixv >= len(vals):
+            break
+    return (flow, stage)
+
 
 
 def singleStageFile(path):
@@ -85,7 +113,8 @@ def singleStageFile(path):
     return ([float(i[flow]) for i in lines[1:]], [float(i[stage]) for i in lines[1:]])
 
 def specify(project = None, stagef = None, river = None, reach = None, rs = None, nct = None, outf = None,
-            plot = None, auto = None, metrics = None, fileN = None, slope = None):
+            plot = None, auto = None, evals = None, metrics = None, fileN = None, slope = None, usgs = None,
+            flowcount = None, enddate = None, startdate = None, period = None):
     """
     Select options and decide what to do.  All arguments are requested interactively if not specified.
     :param project: project path
@@ -97,10 +126,32 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     :param outf: output file path or "" not to write one
     :param plot: to plot results
     :param auto: whether to use automatic optimization with NSGAII
+    :param metrics: list of metrics to use
+    :param fileN: flow file number to write to
+    :param slope: slope for normal depth boundary condition
+    :param usgs: USGS gage to use or "" not to use
+    :param flowcount: how many flows to select if using USGS data
+    :param enddate: end date for USGS
+    :param startdate: start date for USGS
+    :param period: period for USGS
     """
+    def getUSGS(usgs, flowcount, enddate, startdate, period):
+        flowcount = int(input("Approx. how many flows to retrieve: ")) if flowcount is None else flowcount
+        enddate = input("End date or leave blank for today: ") if enddate is None else enddate
+        startdate = input("Start date or leave blank for 1 week ago or period: ") if startdate is None else startdate
+        period = input("Period or leave blank for 1 week or start date: ") if period is None else period
+        return prepareUSGSData(
+            getUSGSData(usgs, enddate, startdate, period),
+            flowcount
+        )
+
+
     project = input("Enter project path (including .prj file): ") if project is None else project
-    stagef = input("Enter path to stage file: ") if stagef is None else stagef
-    (flow, stage) = singleStageFile(stagef)
+    usgs = "" if stagef is not None else usgs
+    usgs = input("USGS gage number or leave blank to use a stage file: ") if usgs is None else usgs
+    if usgs == "":
+        stagef = input("Enter path to stage file: ") if stagef is None else stagef
+    (flow, stage) = singleStageFile(stagef) if usgs == "" else getUSGS(usgs, flowcount, enddate, startdate, period)
     outf = input("Enter output file path or nothing to not have one: ") if outf is None else outf
     fileN = input("Enter flow file number to write (default 01): ") if fileN is None else fileN
     fileN = "01" if fileN == "" else fileN
@@ -127,6 +178,7 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     auto = input("Enter Y to use automatic calibration (default: interactive): ") in ["Y", "y"] if auto is None else auto
     plot = input("Enter N to not plot results (default: plot): ") not in ["N", "n"] if plot is None else plot
     nct = int(input("Number of n to test each iteration: ")) if nct is None else nct
+    evals = int(input("How many evaluations to run? ")) if auto and evals is None else evals
     model = Model(project)
     model.params.setSteadyFlows(river, reach, rs=None, flows=flow, slope=slope, fileN=fileN)
 
@@ -135,7 +187,7 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
                 outf = outf, model = model, plot = plot, metrics = metrics)
     if auto:
         autoIterate(model = model, river = river, reach = reach, rs = rs, flow = flow, stage = stage, nct = nct,
-                    plot = plot, outf = outf, metrics = metrics)
+                    plot = plot, outf = outf, metrics = metrics, evals = evals)
 
 def iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot):
     """
