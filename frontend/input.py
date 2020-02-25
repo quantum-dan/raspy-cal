@@ -64,7 +64,8 @@ def getUSGSData(gage, end = None, start = None, period = None, urlFunc = usgsURL
         if item.endswith(stagen):
             stagecol = ix
     return [
-        (row[flowcol], row[stagecol]) for row in rows[2:]  # skip first 2 rows which are headers, not data
+        # skip first 2 rows which are headers, not data, and make sure each row is long enough
+        (row[flowcol], row[stagecol]) for row in rows[2:] if len(row) > stagecol
     ]
 
 
@@ -252,7 +253,8 @@ def testrun():
     )
 
 if __name__ == "__main__":
-    testrun()
+    gn = "09423350"
+    print(getUSGSData(gn)[:100])
 
 
 
