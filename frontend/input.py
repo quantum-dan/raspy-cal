@@ -174,9 +174,16 @@ def prepareUSGSData(usgsData, flowcount = 100, log = True):
     # flowcount - 1 steps
     step = rng ** (1/(flowcount - 1)) if log else rng / (flowcount - 1)
     flow = [sortedData[0][0]]
+    if flow[0] < 0.1:
+        flow[0] = 0.1
     stage = [sortedData[0][1]]
     first = sortedData[0][0]
+
+    # To avoid overlong numbers, since the HEC-RAS flow files are fixed-width, PyRASFile rounds to 1 decimal place
+    first = first if first >= 0.1 else 0.1
     vals = [first * step ** ix if log else first + step + ix for ix in range(1, flowcount)]
+    vals = [round(val, 1) for val in vals]
+    vals = sorted(list(set(vals)))  # Only unique values, since rounding might introduce duplicates
     ixv = 0
     for (fl, st) in sortedData:
         if fl >= vals[ixv] and fl > flow[-1]:  # Make sure it's also greater than previous - no point in duplicates
@@ -229,7 +236,7 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     def getUSGS(usgs, flowcount, enddate, startdate, period):
         flowcount = int(input("Approx. how many flows to retrieve: ")) if flowcount is None else flowcount
         enddate = input("End date or leave blank for today: ") if enddate is None else enddate
-        startdate = input("Start date or leave blank for 1 week ago or period: ") if startdate is None else startdate
+        startdate = input("Start date or leave blank for 1 week ago or period: ") if startdate is None and (period is None or period == "")
         period = input("Period or leave blank for 1 week or start date: ") if period is None else period
         return prepareUSGSData(
             getUSGSData(usgs, enddate, startdate, period),
