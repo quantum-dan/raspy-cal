@@ -98,7 +98,7 @@ Current progress: minimum feature set implemented.  Basic GUI implemented.  Next
         1. Multiple locations/empirical data sets (manual range specification)
     1. Implement automatic generic-use outputs (for use by interfaces) - DONE (outputs CSV of n vs metrics)
     1. Implement R interface
-    1. Implement generic config file + command line interface for use by other programs
+    1. Implement generic config file + command line interface for use by other programs - DONE (config file)
 1. Luxury improvements
     1. Implement any necessary changes to make the tool fully generic with respect to both parameters and criteria, allowing it to be used outside of HEC-RAS (if this is not already the case naturally)
     1. Implement full GUI - DONE
