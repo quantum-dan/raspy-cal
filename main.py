@@ -1,9 +1,11 @@
-from frontend.input import iterate, specify
+from frontend.input import specify, configSpecify
 from frontend import gui
 from sys import argv
 
 msg = """Note: in order to run somewhat more economically, you can use:
-python raspy_cal/main.py <project path> <stage file path> <output file path>
+python raspy_cal/main.py <project path> <stage file path> <output file path>.
+Alternatively, to use a config file, run: `python main.py <config file path>`
+or `raspy-cal.exe <config file path>`.
 """
 
 """
@@ -58,6 +60,8 @@ if __name__ == "__main__":
             specify()
         if argv[1] == "GUI":  # Test the GUI (when implemented)
             gui.main()
+        else:
+            configSpecify(argv[1], run=True)
     else:
         print("Run python main.py CMD to use the command line version.")
         gui.main()

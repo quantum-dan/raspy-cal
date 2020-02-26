@@ -2,7 +2,7 @@
 Graphical front-end.  Just some simple inputs with which to run iterate and autoIterate.
 """
 
-from frontend.input import iteration, autoIterate, singleStageFile, csv
+from frontend.input import iteration, autoIterate, singleStageFile, csv, configSpecify, getUSGSData, prepareUSGSData
 from frontend.display import evalTable
 from midlevel.eval import tests
 from default import Model
@@ -26,6 +26,7 @@ class GUI(tk.Frame):
         self.river = self.riverField.get()
         self.reach = self.reachField.get()
         self.rs = self.rsField.get()
+        self.usgs = self.usgsField.get()
         self.stagef = self.stageField.get()
         (self.flow, self.stage) = singleStageFile(self.stagef)
         self.normalSlope = (lambda s: 0.001 if s == "" else float(s))(self.slopeField.get())
@@ -118,12 +119,16 @@ class GUI(tk.Frame):
         with open(self.outf, "w") as f:
             f.write(self.resultCsv)
 
-    def autoPopulate(self):
-        base = self.baseField.get()
-        base = base if base != "" else defaultBase
-        self.projectField.insert(0, base)
-        self.stageField.insert(0, base)
-        self.outField.insert(0, base)
+    def loadConfig(self):
+        vals = configSpecify(self.confField.get(), run=False)
+        for k in self.pairs:
+            self.pairs[k].insert(0, str(vals[k]))
+
+    def writeConfig(self):
+        out = [[k, self.pairs[k].get()] for k in self.pairs]
+        file = self.confField.get()
+        with open(file) as f:
+            f.write("\n".join([":".join(i) for i in out]))
 
     def createWidgets(self):
         self.keys = list(tests.keys())
@@ -132,12 +137,14 @@ class GUI(tk.Frame):
 
         # Entries
         self.entryFrame = tk.Frame(self)
-        self.baseField = tk.Entry(self.entryFrame, width=100)
-        self.baseButton = tk.Button(self.entryFrame, text="Populate", command=self.autoPopulate)
+        self.confField = tk.Entry(self.entryFrame, width=100)
+        self.saveConfigButton = tk.Button(self.entryFrame, text="Save Config", command=self.saveConfig)
+        self.loadConfigButton = tk.Button(self.entryFrame, text="Load Config", command=self.loadConfig)
         self.projectField = tk.Entry(self.entryFrame, width=100)
         self.riverField = tk.Entry(self.entryFrame, width=100)
         self.reachField = tk.Entry(self.entryFrame, width=100)
         self.rsField = tk.Entry(self.entryFrame, width=100)
+        self.usgsField = tk.Entry(self.entryFrame, width = 100)
         self.stageField = tk.Entry(self.entryFrame, width=100)
         self.slopeField = tk.Entry(self.entryFrame, width=100)
         self.fileNField = tk.Entry(self.entryFrame, width=100)
@@ -145,6 +152,19 @@ class GUI(tk.Frame):
         self.outField = tk.Entry(self.entryFrame, width=100)
         self.metricField = tk.Frame(self.entryFrame)
         self.plotField = tk.Checkbutton(self.entryFrame, text="Plot?", variable=self.plotInt)
+
+        self.pairs = {
+            "project": self.projectField,
+            "stagef": self.stageField,
+            "river": self.riverField,
+            "reach": self.reachField,
+            "rs": self.rsField,
+            "nct": self.nField,
+            "outf": self.outField,
+            "filen": self.fileNField,
+            "slope": self.slopeField,
+            "usgs": self.usgsField
+        }
 
         self.keyChecks = {}
 
@@ -155,9 +175,11 @@ class GUI(tk.Frame):
             self.keyChecks[key] = var
 
         fields = [
-            ("Base Path (optional)", self.baseField),
-            ("Apply Base Path (optional)", self.baseButton),
+            ("Config File Path (optional)", self.confField),
+            ("Save Config", self.saveConfigButton),
+            ("Load Config", self.loadConfigButton),
             ("Project File Path", self.projectField),
+            ("USGS Gage # (optional)", self.usgsField),
             ("River Name", self.riverField),
             ("Reach Name", self.reachField),
             ("River Station", self.rsField),

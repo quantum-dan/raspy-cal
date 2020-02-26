@@ -13,6 +13,93 @@ from urllib.request import urlopen
 def csv(list):
     return "\n".join([",".join(row) for row in list])
 
+def parseConfigText(text, parsers):
+    """
+    Parse the text of a config file.  Format is Keyword: Value one per line.  Lines starting with # are
+    ignored.
+    :param text: the text of the config file.
+    :param parsers: a dictionary of {keyword: function}, where function takes the string and returns
+        the relevant value.  Lowercase keywords.
+    :return: a dictionary of {keyword: value}
+    """
+    lines = [(line, line.index(":")) for line in text.split("\n") if not line.startswith("#")
+             and not line == ""]
+    # Before colon : after colon
+    stringvals = { line[0][:line[1]].strip().lower() : line[0][line[1]:].strip() for line in lines }
+    # So that values will be None if they aren't present in the file
+    result = {k: None for k in parsers}
+    for v in stringvals:
+        result[v] = parsers[v](stringvals[v])
+    return result
+
+def configSpecify(confPath, run = True):
+    """
+    Parse all of the arguments for specify and run it.
+    :param confPath: path to the config file, or None to return example config file format
+    :return: config values or example file format
+    """
+    id = lambda x: x
+    toBool = lambda x: x in ["True", "true", "t", "T"]
+    parsers = {
+        "project": id,
+        "stagef": id,
+        "river": id,
+        "reach": id,
+        "rs": id,
+        "nct": int,
+        "outf": id,
+        "plot": toBool,
+        "auto": toBool,
+        "evals": int,
+        "metrics": lambda x: [i.strip() for i in x.split(",")],  # format: r2,rmse,pbias
+        "filen": id,
+        "slope": float,
+        "usgs": id,
+        "flowcount": int,
+        "enddate": id,
+        "startdate": id,
+        "period": int
+    }
+    if confPath is not None:
+        with open(confPath) as f:
+            data = f.read()
+        vals = parseConfigText(data, parsers)
+        if run:
+            specify(
+                project=vals["project"], stagef=vals["stagef"], river=vals["river"], reach=vals["reach"],
+                rs=vals["rs"], nct=vals["nct"], outf=vals["outf"], plot=vals["plot"], auto=vals["auto"],
+                evals=vals["evals"], metrics=vals["metrics"], fileN=vals["filen"], slope=vals["slope"],
+                usgs=vals["usgs"], flowcount=vals["flowcount"], enddate=vals["enddate"], startdate=vals["startdate"],
+                period=vals["period"]
+            )
+        return vals
+    else:
+        return """
+# Example configuration file.  Fill out the values below to use and run with `python main.py <path>` or
+# `raspy-cal.exe <path>` to use this config file.  Comment out lines you don't want to specify with `#`
+# at the start of the line; information not provided will be requested when running as needed.  Not all
+# information is required, e.g. if usgs is specified stagef will be ignored.
+project: C:\\PathToHECRASProject\\project.prj
+stagef: C:\\PathToStagefileIfUsed\\stagefile.csv
+river: South Platte River
+reach: Above Confluence Park
+rs: 12345.0*
+nct: 10
+outf: C:\\PathToOutputFile\\outfile.csv
+plot: True
+auto: True
+evals: 100
+metrics: r2,rmse,pbias
+filen: 04
+slope: 0.025
+usgs: 09429100
+flowcount: 100
+enddate: 2020-02-26
+startdate: 2019-02-28
+period: 500
+"""
+
+
 def usgsURL(gage, end = None, start=None, period=None):
     """
     Generate USGS gage data url.
