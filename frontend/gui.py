@@ -28,7 +28,8 @@ class GUI(tk.Frame):
         self.rs = self.rsField.get()
         self.usgs = self.usgsField.get()
         self.stagef = self.stageField.get()
-        (self.flow, self.stage) = singleStageFile(self.stagef)
+        (self.flow, self.stage) = singleStageFile(self.stagef) if self.usgs == "" else\
+            prepareUSGSData(getUSGSData(self.usgs, period = 365 * 2))
         self.normalSlope = (lambda s: 0.001 if s == "" else float(s))(self.slopeField.get())
         self.fileN = (lambda n: "01" if n == "" else n)(self.fileNField.get())
         self.nct = int(self.nField.get())

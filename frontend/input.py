@@ -236,7 +236,9 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     def getUSGS(usgs, flowcount, enddate, startdate, period):
         flowcount = int(input("Approx. how many flows to retrieve: ")) if flowcount is None else flowcount
         enddate = input("End date or leave blank for today: ") if enddate is None else enddate
-        startdate = input("Start date or leave blank for 1 week ago or period: ") if startdate is None and (period is None or period == "")
+        startdate = input("Start date or leave blank for 1 week ago or period: ") if startdate is None and\
+                                                                                    (period is None or period == "")\
+                                                                                    else startdate
         period = input("Period or leave blank for 1 week or start date: ") if period is None else period
         return prepareUSGSData(
             getUSGSData(usgs, enddate, startdate, period),
