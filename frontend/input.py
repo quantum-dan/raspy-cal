@@ -25,11 +25,12 @@ def parseConfigText(text, parsers):
     lines = [(line, line.index(":")) for line in text.split("\n") if not line.startswith("#")
              and not line == ""]
     # Before colon : after colon
-    stringvals = { line[0][:line[1]].strip().lower() : line[0][line[1]:].strip() for line in lines }
+    stringvals = { line[0][:line[1]].strip().lower() : line[0][line[1]+1:].strip() for line in lines }
     # So that values will be None if they aren't present in the file
     result = {k: None for k in parsers}
     for v in stringvals:
-        result[v] = parsers[v](stringvals[v])
+        if stringvals[v] != "":
+            result[v] = parsers[v](stringvals[v])
     return result
 
 def configSpecify(confPath, run = True):

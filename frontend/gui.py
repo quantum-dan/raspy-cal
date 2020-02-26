@@ -122,12 +122,14 @@ class GUI(tk.Frame):
     def loadConfig(self):
         vals = configSpecify(self.confField.get(), run=False)
         for k in self.pairs:
-            self.pairs[k].insert(0, str(vals[k]))
+            if vals[k] is not None:
+                self.pairs[k].delete(0, tk.END)
+                self.pairs[k].insert(0, str(vals[k]))
 
-    def writeConfig(self):
+    def saveConfig(self):
         out = [[k, self.pairs[k].get()] for k in self.pairs]
         file = self.confField.get()
-        with open(file) as f:
+        with open(file, "w") as f:
             f.write("\n".join([":".join(i) for i in out]))
 
     def createWidgets(self):
@@ -141,10 +143,10 @@ class GUI(tk.Frame):
         self.saveConfigButton = tk.Button(self.entryFrame, text="Save Config", command=self.saveConfig)
         self.loadConfigButton = tk.Button(self.entryFrame, text="Load Config", command=self.loadConfig)
         self.projectField = tk.Entry(self.entryFrame, width=100)
+        self.usgsField = tk.Entry(self.entryFrame, width = 100)
         self.riverField = tk.Entry(self.entryFrame, width=100)
         self.reachField = tk.Entry(self.entryFrame, width=100)
         self.rsField = tk.Entry(self.entryFrame, width=100)
-        self.usgsField = tk.Entry(self.entryFrame, width = 100)
         self.stageField = tk.Entry(self.entryFrame, width=100)
         self.slopeField = tk.Entry(self.entryFrame, width=100)
         self.fileNField = tk.Entry(self.entryFrame, width=100)
