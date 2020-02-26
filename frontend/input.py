@@ -153,7 +153,10 @@ def getUSGSData(gage, end = None, start = None, period = None, urlFunc = usgsURL
             stagecol = ix
     return [
         # skip first 2 rows which are headers, not data, and make sure each row is long enough
-        (row[flowcol], row[stagecol]) for row in rows[2:] if len(row) > stagecol
+        (float(row[flowcol]), float(row[stagecol])) for row in rows[2:] if len(row) > stagecol and
+                                                                           len(row) > flowcol and
+                                                                           len(row[flowcol]) > 0 and
+                                                                           len(row[stagecol]) > 0
     ]
 
 def prepareUSGSData(usgsData, flowcount = 100, log = True):
@@ -165,7 +168,7 @@ def prepareUSGSData(usgsData, flowcount = 100, log = True):
     :param log: whether to evenly distribute logarithmically (alternative: linearly)
     :return: (flows, stages)
     """
-    sortedData = sorted(usgsData, key=lambda d: d[0])  # sort by flow rate
+    sortedData = sorted([u for u in usgsData if u[0] > 0], key=lambda d: d[0])  # sort by flow rate
     # Range: either largest / smallest or largest * smallest
     rng = sortedData[-1][0] / sortedData[0][0] if log else sortedData[-1][0] - sortedData[0][0]
     # flowcount - 1 steps
@@ -176,7 +179,7 @@ def prepareUSGSData(usgsData, flowcount = 100, log = True):
     vals = [first * step ** ix if log else first + step + ix for ix in range(1, flowcount)]
     ixv = 0
     for (fl, st) in sortedData:
-        if fl >= vals[ixv]:
+        if fl >= vals[ixv] and fl > flow[-1]:  # Make sure it's also greater than previous - no point in duplicates
             flow.append(fl)
             stage.append(st)
             ixv += 1
@@ -271,7 +274,7 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     model.params.setSteadyFlows(river, reach, rs=None, flows=flow, slope=slope, fileN=fileN)
 
     if not auto:
-        iterate(project = project, stage = stagef, river = river, reach = reach, rs = rs, nct = nct,
+        iterate(project = project, flow=flow, stage = stage, river = river, reach = reach, rs = rs, nct = nct,
                 outf = outf, model = model, plot = plot, metrics = metrics)
     if auto:
         autoIterate(model = model, river = river, reach = reach, rs = rs, flow = flow, stage = stage, nct = nct,
@@ -308,7 +311,7 @@ def iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metri
         compareAllRatingCurves(flow, stage, [(i[0], i[2]) for i in best])
     return best
 
-def iterate(project = None, stage = None, river = None, reach = None, rs = None, nct = None,
+def iterate(project = None, flow = None, stage = None, river = None, reach = None, rs = None, nct = None,
             rand = None, outf = None, model = None, plot = None, metrics = None):
     """
     Iterate over n options until the user narrows it down to a good choice.  Note that providing an n of 0 will
@@ -317,7 +320,6 @@ def iterate(project = None, stage = None, river = None, reach = None, rs = None,
     """
     project = input("Enter project path (including .prj file): ") if project is None else project
     model = Model(project) if model is None else model
-    (flow, stage) = singleStageFile(input("Enter path to stage file: ")) if stage is None else singleStageFile(stage)
     river = input("River name: ") if river is None else river
     reach = input("Reach name: ") if reach is None else reach
     rs = input("River station: ") if rs is None else rs
@@ -394,7 +396,7 @@ def testrun():
 
 if __name__ == "__main__":
     gn = "09423350"
-    print(getUSGSData(gn)[:100])
+    print(prepareUSGSData(getUSGSData(gn, period=365*2), log=False))
 
 
 
