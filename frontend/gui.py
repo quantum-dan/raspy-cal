@@ -7,11 +7,15 @@ from frontend.display import evalTable
 from midlevel.eval import tests
 from default import Model
 import tkinter as tk
+from tkinter import filedialog
 
 # iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot): [(n, metrics, sim)]
 # autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, evals = None): [(n, metrics)]
 
 defaultBase = "V:\\LosAngelesProjectsData\\HEC-RAS\\"
+
+def browseButton(parent, f):
+    return tk.Button(parent, text="Browse", command=lambda: f(filedialog.askopenfilename()))
 
 class GUI(tk.Frame):
     def __init__(self, master = None):
@@ -132,6 +136,24 @@ class GUI(tk.Frame):
         file = self.confField.get()
         with open(file, "w") as f:
             f.write("\n".join([":".join(i) for i in out]))
+    
+    def setVal(self, entry):
+        def setter(val):
+            entry.delete(0, tk.END)
+            entry.insert(0, val)
+        return setter
+            
+    def browseField(self, parent):
+        def setVal(entry, val):
+            entry.delete(0, tk.END)
+            entry.insert(0, val)
+        browseFrame = tk.Frame(parent)
+        entry = tk.Entry(browseFrame, width=100)
+        browse = tk.Button(text="Browse", command=lambda: setVal(entry, tk.filedialog.askdirectory()))
+        entry.grid(column=0, row=0)
+        browse.grid(column=1, row=0)
+        
+        return (browseFrame, entry, browse)
 
     def createWidgets(self):
         self.keys = list(tests.keys())
@@ -178,10 +200,10 @@ class GUI(tk.Frame):
             self.keyChecks[key] = var
 
         fields = [
-            ("Config File Path (optional)", self.confField),
+            ("Config File Path (optional)", self.confField, browseButton(self.entryFrame, self.setVal(self.confField))),
             ("Save Config", self.saveConfigButton),
             ("Load Config", self.loadConfigButton),
-            ("Project File Path", self.projectField),
+            ("Project File Path", self.projectField, browseButton(self.entryFrame, self.setVal(self.projectField))),
             ("USGS Gage # (optional)", self.usgsField),
             ("River Name", self.riverField),
             ("Reach Name", self.reachField),
@@ -190,14 +212,18 @@ class GUI(tk.Frame):
             ("Slope for Normal Depth", self.slopeField),
             ("Flow file number to write (e.g. 01)", self.fileNField),
             ("# ns To Test", self.nField),
-            ("Output File Path", self.outField),
+            ("Output File Path", self.outField, browseButton(self.entryFrame, self.setVal(self.outField))),
             ("Metrics", self.metricField),
             ("Plot", self.plotField)
         ]
 
-        for (ix, (name, field)) in enumerate(fields):
+        for (ix, vals) in enumerate(fields):
+            name = vals[0]
+            field = vals[1]
             tk.Label(self.entryFrame, text=name).grid(row=ix)
             field.grid(row=ix, column=1)
+            if len(vals) == 3:
+                vals[2].grid(row=ix, column=2)
 
         self.entryFrame.pack(side="top")
 
