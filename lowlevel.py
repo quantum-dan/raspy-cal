@@ -1,6 +1,9 @@
 """
 Low-level functionality that provides the infrastructure for optimization work.  This is a fairly
 simple wrapper around the provided API.  See README.md for expected API functionality.
+
+Copyright (C) 2020 Daniel Philippus
+Full copyright notice located in main.py.
 """
 
 STAGE = 0

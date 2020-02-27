@@ -1,5 +1,8 @@
 """
 Accept relevant inputs and put them into a useful format.
+
+Copyright (C) 2020 Daniel Philippus
+Full copyright notice located in main.py.
 """
 
 from default import Model

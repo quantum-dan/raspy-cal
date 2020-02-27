@@ -1,5 +1,8 @@
 """
 Graphical front-end.  Just some simple inputs with which to run iterate and autoIterate.
+
+Copyright (C) 2020 Daniel Philippus
+Full copyright notice located in main.py.
 """
 
 from frontend.input import iteration, autoIterate, singleStageFile, csv, configSpecify, getUSGSData, prepareUSGSData
@@ -235,11 +238,20 @@ class GUI(tk.Frame):
         self.buttonFrame.pack(side = "bottom")
 
 
+LICENSE = """Raspy-Cal Automatic Calibrator
+Copyright (C) 2020 Daniel Philippus
+This program comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are
+welcome to redistribute it under certain conditions.  For details, see the LICENSE
+file at github.com/quantum-dan/raspy-cal.
+"""
 
 def main():
     root = tk.Tk()
-    gui = GUI(root)
-    gui.master.title("Raspy-Cal Calibrator")
+    mainframe = tk.Frame(root)
+    tk.Label(mainframe, text=LICENSE).pack(side="bottom")
+    gui = GUI(mainframe)
+    mainframe.master.title("Raspy-Cal Calibrator")
+    mainframe.pack()
     gui.mainloop()
 
 if __name__ == "__main__":

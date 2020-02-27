@@ -1,5 +1,8 @@
 """
 Functions to display results.
+
+Copyright (C) 2020 Daniel Philippus
+Full copyright notice located in main.py.
 """
 
 import matplotlib.pyplot as plt

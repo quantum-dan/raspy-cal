@@ -1,5 +1,8 @@
 """
 Evaluation of parameter sets, i.e. goodness of fit.
+
+Copyright (C) 2020 Daniel Philippus
+Full copyright notice located in main.py.
 """
 
 import HydroErr as he

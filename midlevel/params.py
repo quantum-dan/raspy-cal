@@ -1,6 +1,9 @@
 """
 Generate parameter combinations.  Currently, it is only intended to be used with Manning's n, but
 multiple parameters could be used in the future.
+
+Copyright (C) 2020 Daniel Philippus
+Full copyright notice located in main.py.
 """
 
 import random
