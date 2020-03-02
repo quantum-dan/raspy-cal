@@ -5,7 +5,9 @@ Copyright (C) 2020 Daniel Philippus
 Full copyright notice located in main.py.
 """
 
-from frontend.input import iteration, autoIterate, singleStageFile, csv, configSpecify, getUSGSData, prepareUSGSData
+from frontend.input import autoIterate, singleStageFile, csv, configSpecify
+from midlevel.data import getUSGSData, prepareUSGSData
+from midlevel.calibrators import nstageIteration
 from frontend.display import evalTable
 from midlevel.eval import tests
 from default import Model
@@ -107,7 +109,7 @@ class GUI(tk.Frame):
         self.nmin = float(self.nminEntry.get())
         self.nmax = float(self.nmaxEntry.get())
         self.rand = self.randVar.get() == 1
-        self.result = iteration(self.model, self.river, self.reach, self.rs, self.stage,
+        self.result = nstageIteration(self.model, self.river, self.reach, self.rs, self.stage,
                                 self.flow, self.nct, self.rand, self.nmin, self.nmax,
                                 self.metrics, self.plot)
         self.displayResult()

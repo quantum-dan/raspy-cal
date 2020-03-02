@@ -10,6 +10,9 @@ from lowlevel import runSims
 from midlevel.eval import evaluate, minimized, fullEval, tests, evaluator
 from midlevel.params import paramSpec, genParams
 from frontend.display import evalTable, compareAllRatingCurves, compareRatingCurve
+from midlevel.data import getUSGSData, prepareUSGSData, singleStageFile
+from midlevel.calibrators import nstageIteration
+
 from platypus import NSGAII, Problem, Real, nondominated # https://platypus.readthedocs.io/en/latest/getting-started.html#defining-constrained-problems
 from urllib.request import urlopen
 
@@ -103,116 +106,6 @@ startdate: 2019-02-28
 period: 500
 """
 
-
-def usgsURL(gage, end = None, start=None, period=None):
-    """
-    Generate USGS gage data url.
-    :param gage: gage number
-    :param start: start date (yyyy-mm-dd)
-    :param end: end date
-    :param period: number of days to retrieve (int)
-    :return: the URL
-    """
-    # Period: https://nwis.waterdata.usgs.gov/ca/nwis/uv/?cb_00060=on&cb_00065=on&format=rdb&site_no=09429100&period=500&begin_date=2020-02-17&end_date=2020-02-24
-    # Date range: https://waterdata.usgs.gov/ca/nwis/uv?cb_00060=on&cb_00065=on&format=rdb&site_no=09423350&period=&begin_date=2020-02-17&end_date=2020-02-24
-    # format order: site_no, period, begin_date, end_date - all strings
-    # Period, begin_date can each be left empty if the other is specified
-    base = "https://nwis.waterdata.usgs.gov/ca/nwis/uv/?cb_00060=on&cb_00065=on&format=rdb&site_no=%s&period=%s&begin_date=%s&end_date=%s"
-    start = "" if start is None else start
-    period = "" if period is None else str(period)
-    end = "" if end is None else end
-    return base % (gage, period, start, end)
-
-def getUSGSData(gage, end = None, start = None, period = None, urlFunc = usgsURL):
-    """
-    Retrieve USGS gage data for the given gage.
-    :param gage: gage number
-    :param end: end date (yyyy-mm-dd)
-    :param start: start date
-    :param period: number of days to retrieve data for
-    :param urlFunc: url generator function (usually should be left as default) (arguments gage, start, end, period)
-    :return: [(flow, stage)]
-    """
-    # identify flow and stage
-    flown = "00060"
-    stagen = "00065"
-    url = urlFunc(gage=gage, start=start, end=end, period=period)
-    with urlopen(url) as res:
-        usgsBytes = res.read()
-    usgs = usgsBytes.decode("utf-8")
-    lines = usgs.split("\n")
-    dataIx = 0
-    while dataIx < len(lines):
-        if lines[dataIx][0] != "#":  # Find first data line (not commented)
-            break
-        dataIx += 1
-    rows = [l.split("\t") for l in lines[dataIx:]]
-    flowcol = 0
-    stagecol = 0
-    for (ix, item) in enumerate(rows[0]):
-        if item.endswith(flown):
-            flowcol = ix
-        if item.endswith(stagen):
-            stagecol = ix
-    return [
-        # skip first 2 rows which are headers, not data, and make sure each row is long enough
-        (float(row[flowcol]), float(row[stagecol])) for row in rows[2:] if len(row) > stagecol and
-                                                                           len(row) > flowcol and
-                                                                           len(row[flowcol]) > 0 and
-                                                                           len(row[stagecol]) > 0
-    ]
-
-def prepareUSGSData(usgsData, flowcount = 100, log = True):
-    """
-    Prepare flow and stage for use.  Returns a roughly evenly distributed set of flows across the relevant
-    range.
-    :param usgsData: usgs data as returned by getUSGSData - [(flow, stage)]
-    :param flowcount: how many flows to return
-    :param log: whether to evenly distribute logarithmically (alternative: linearly)
-    :return: (flows, stages)
-    """
-    sortedData = sorted([u for u in usgsData if u[0] > 0], key=lambda d: d[0])  # sort by flow rate
-    # Range: either largest / smallest or largest * smallest
-    rng = sortedData[-1][0] / sortedData[0][0] if log else sortedData[-1][0] - sortedData[0][0]
-    # flowcount - 1 steps
-    step = rng ** (1/(flowcount - 1)) if log else rng / (flowcount - 1)
-    flow = [sortedData[0][0]]
-    if flow[0] < 0.1:
-        flow[0] = 0.1
-    stage = [sortedData[0][1]]
-    first = sortedData[0][0]
-
-    # To avoid overlong numbers, since the HEC-RAS flow files are fixed-width, PyRASFile rounds to 1 decimal place
-    first = first if first >= 0.1 else 0.1
-    vals = [first * step ** ix if log else first + step + ix for ix in range(1, flowcount)]
-    vals = [round(val, 1) for val in vals]
-    vals = sorted(list(set(vals)))  # Only unique values, since rounding might introduce duplicates
-    ixv = 0
-    for (fl, st) in sortedData:
-        if fl >= vals[ixv] and fl > flow[-1]:  # Make sure it's also greater than previous - no point in duplicates
-            flow.append(fl)
-            stage.append(st)
-            ixv += 1
-        if ixv >= len(vals):
-            break
-    return (flow, stage)
-
-
-
-def singleStageFile(path):
-    """
-    Parse a single rating curve file with flow vs stage, assuming the flows are in the order of
-    flow profiles in HEC-RAS which the user has entered and that the file is a CSV with column headers
-    Flow and Stage.
-    """
-    lines = []
-    with open(path) as f:
-        lines = [line for line in f]
-    lines = [[i.strip() for i in line.split(",")] for line in lines]
-    stage = lines[0].index("Stage")
-    flow = lines[0].index("Flow")
-    return ([float(i[flow]) for i in lines[1:]], [float(i[stage]) for i in lines[1:]])
-
 def specify(project = None, stagef = None, river = None, reach = None, rs = None, nct = None, outf = None,
             plot = None, auto = None, evals = None, metrics = None, fileN = None, slope = None, usgs = None,
             flowcount = None, enddate = None, startdate = None, period = None):
@@ -292,37 +185,6 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
         autoIterate(model = model, river = river, reach = reach, rs = rs, flow = flow, stage = stage, nct = nct,
                     plot = plot, outf = outf, metrics = metrics, evals = evals)
 
-def iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot):
-    """
-    Run one test.
-    :param model: HEC-RAS model
-    :param river: river name
-    :param reach: reach name
-    :param rs: river station
-    :param stage: list of stages
-    :param flow: list of flows
-    :param nct: number of ns to test
-    :param rand: whether to use random ns
-    :param nmin: minimum n
-    :param nmax: maximum n
-    :param metrics: list of metrics to use
-    :param plot: whether to plot results
-    :return: [(n, metrics, sim)]
-    """
-    pspec = paramSpec("n", nmin, nmax, nct, rand)
-    ns = genParams([pspec], dicts=False)
-    ns = [round(n, 3) for n in ns]  # 3 decimal places should be sufficient, since ns < 0.001 seem to not have much effect anyway
-    print("Using ns: %s" % ns)
-    results = runSims(model, ns, river, reach, len(stage), range=[rs])
-    # Complication below: results is a dictionary of {rs: {profile number: stage}}
-    resultPts = [(ns[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(ns))]
-    best = evaluate(stage, resultPts, metrics=metrics, n=len(ns)//5)  # [(parameters, metrics, sim)]
-    table = evalTable([b[0] for b in best], [b[1] for b in best])
-    print(table)
-    if plot:
-        compareAllRatingCurves(flow, stage, [(i[0], i[2]) for i in best])
-    return best
-
 def iterate(project = None, flow = None, stage = None, river = None, reach = None, rs = None, nct = None,
             rand = None, outf = None, model = None, plot = None, metrics = None):
     """
@@ -338,14 +200,16 @@ def iterate(project = None, flow = None, stage = None, river = None, reach = Non
     nct = int(input("Enter number of n to test each iteration: ")) if nct is None else nct
     rand = input("Enter Y to use random parameter generation: ") in ["y", "Y"] if rand is None else rand
     outf = input("Enter path to write output file to or nothing to not write it: ") if outf is None else outf
+    plotpath = ".".join(outf.split(".")[:-1]) + ".png"
     plot = input("Plot results? Enter N to not plot: ") not in ["n", "N"] if plot is None else plot
     cont = True
     while cont:
         nmin = float(input("Enter minimum n: "))
         nmax = float(input("Enter maximum n: "))
-        best = iteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot)
+        best = nstageIteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot)
         cont = input("Continue?  Q or q to quit and write results: ") not in ["q", "Q"]
         if (not cont) and (outf != ""):
+            compareAllRatingCurves(flow, stage, [(i[0], i[2]) for i in best], display=False, path=plotpath)
             with open(outf, "w") as f:
                 f.write(csv(evalTable([b[0] for b in best], [b[1] for b in best], string = False)))
 
@@ -356,6 +220,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     keys = metrics  # ensure same order
     evalf = evaluator(stage, useTests = keys)
     evals = int(input("How many evaluations to run? ")) if evals is None else evals
+    plotpath = ".".join(outf.split(".")[:-1]) + ".png"
     count = 1
     print("Running automatic calibration")
     def manningEval(vars):
@@ -388,8 +253,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
         with open(outf, "w") as f:
             f.write(csv(evalTable([m[0] for m in metrics], [m[1] for m in metrics], string = False)))
         print("Results written to file %s" % outf)
-    if plot:
-        compareAllRatingCurves(flow, stage, resultPts)
+    compareAllRatingCurves(flow, stage, resultPts, plot, path=plotpath)
     return metrics
 
 
