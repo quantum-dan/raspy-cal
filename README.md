@@ -1,6 +1,10 @@
 # raspy-cal
 Python automatic calibrator for HEC-RAS.  RAS + Python + Calibrator = raspy-cal.
 
+## v0.2.1-Stable
+
+"Stable" branches are only updated for bug fixes in response to Issues submitted.  They are branched before beginning major revisions that are likely to cause bugs.
+
 ## Usage & Installation
 
 ### Windows Executable
