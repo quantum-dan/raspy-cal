@@ -9,9 +9,9 @@ Download `raspy-cal.exe` from Releases and run it.  The executable should work w
 
 ### General
 
-The stage (empirical data) file requested must be a CSV with columns named Flow and Stage.  The stage values must be in the same order as the flow profiles in the HEC-RAS steady flow data.
+The stage (empirical data) file requested must be a CSV with columns named Flow and Stage.
 
-Currently, the user must have a fully-defined HEC-RAS project including appropriate geometry, plan, and an empty flow file, in addition to providing empirical data.  The flow data will be generated from the provided empirical data as long as a flow file is available and the plan is set up to use it. The flow file does not have to be empty, but the selected one will be overwritten.  See [development progress](#General-Development-Plan) below.
+The user must have a HEC-RAS project including appropriate geometry, plan, and an empty flow file, where the plan is set up to use the flow file, in addition to providing empirical data or a USGS gage number (from which empirical data will be retrieved).  The flow data will be generated from the provided or retrieved empirical data as long as a flow file is available and the plan is set up to use it. The flow file does not have to be empty, but the selected one will be overwritten.  See [development progress](#General-Development-Plan) below.
 
 ### Command-Line Usage
 
@@ -32,6 +32,8 @@ Packages:
 Raspy-cal is only tested with Python 3.  It may or may not work with Python 2.
 
 ### Installation
+
+This section is not relevant for the executable version.  The executable version is standalone, requiring only that HEC-RAS is installed.
 
 `git clone https://github.com/quantum-dan/raspy-cal raspy_cal` (clone into `raspy_cal` if you want to import it from elsewhere, as `raspy-cal` isn't a valid Python name).
 
