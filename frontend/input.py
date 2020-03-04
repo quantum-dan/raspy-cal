@@ -9,15 +9,12 @@ from default import Model
 from lowlevel import runSims
 from midlevel.eval import evaluate, minimized, fullEval, tests, evaluator
 from midlevel.params import paramSpec, genParams
-from frontend.display import evalTable, compareAllRatingCurves, compareRatingCurve
+from frontend.display import evalTable, compareAllRatingCurves, nDisplay
 from midlevel.data import getUSGSData, prepareUSGSData, singleStageFile
 from midlevel.calibrators import nstageIteration
 
 from platypus import NSGAII, Problem, Real, nondominated # https://platypus.readthedocs.io/en/latest/getting-started.html#defining-constrained-problems
 from urllib.request import urlopen
-
-def csv(list):
-    return "\n".join([",".join(row) for row in list])
 
 def parseConfigText(text, parsers):
     """
@@ -206,12 +203,9 @@ def iterate(project = None, flow = None, stage = None, river = None, reach = Non
     while cont:
         nmin = float(input("Enter minimum n: "))
         nmax = float(input("Enter maximum n: "))
-        best = nstageIteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics, plot)
+        best = nstageIteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics)
+        nDisplay(best, flow, stage, plotpath, outf, plot)
         cont = input("Continue?  Q or q to quit and write results: ") not in ["q", "Q"]
-        if (not cont) and (outf != ""):
-            compareAllRatingCurves(flow, stage, [(i[0], i[2]) for i in best], display=False, path=plotpath)
-            with open(outf, "w") as f:
-                f.write(csv(evalTable([b[0] for b in best], [b[1] for b in best], string = False)))
 
 def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, evals = None):
     """
@@ -246,14 +240,8 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     nondomNs = [sol.variables[0] for sol in nondom]
     results = runSims(model, nondomNs, river, reach, len(stage), range = [rs])
     resultPts = [(nondomNs[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(nondomNs))]
-    metrics = [(res[0], evalf(res[1])) for res in resultPts]
-    table = evalTable([m[0] for m in metrics], [m[1] for m in metrics])
-    print(table)
-    if outf != "":
-        with open(outf, "w") as f:
-            f.write(csv(evalTable([m[0] for m in metrics], [m[1] for m in metrics], string = False)))
-        print("Results written to file %s" % outf)
-    compareAllRatingCurves(flow, stage, resultPts, plot, path=plotpath)
+    metrics = [(res[0], evalf(res[1]), res[1]) for res in resultPts]
+    nDisplay(metrics, flow, stage, plotpath, outf, plot)
     return metrics
 
 

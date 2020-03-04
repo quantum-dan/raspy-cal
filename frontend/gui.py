@@ -5,10 +5,10 @@ Copyright (C) 2020 Daniel Philippus
 Full copyright notice located in main.py.
 """
 
-from frontend.input import autoIterate, singleStageFile, csv, configSpecify
+from frontend.input import autoIterate, singleStageFile, configSpecify
 from midlevel.data import getUSGSData, prepareUSGSData
 from midlevel.calibrators import nstageIteration
-from frontend.display import evalTable
+from frontend.display import evalTable, csv, nDisplay
 from midlevel.eval import tests
 from default import Model
 import tkinter as tk
@@ -111,23 +111,24 @@ class GUI(tk.Frame):
         self.rand = self.randVar.get() == 1
         self.result = nstageIteration(self.model, self.river, self.reach, self.rs, self.stage,
                                 self.flow, self.nct, self.rand, self.nmin, self.nmax,
-                                self.metrics, self.plot)
+                                self.metrics)
         self.displayResult()
 
     def displayResult(self):
         if self.displayed:
             self.displayFrame.destroy()
         self.resultTable = evalTable([r[0] for r in self.result], [r[1] for r in self.result])
-        self.resultCsv = csv(evalTable([r[0] for r in self.result], [r[1] for r in self.result], string = False))
         self.displayFrame = tk.Frame(self.iterFrame)
         tk.Label(self.displayFrame, text=self.resultTable).pack(side="top")
         tk.Button(self.displayFrame, text="Save Results", command=self.writeResult).pack(side="bottom")
         self.displayFrame.pack(side="top")
         self.displayed = True
+        if self.plot:
+            nDisplay(self.result, self.flow, self.stage, plot=True)
 
     def writeResult(self):
-        with open(self.outf, "w") as f:
-            f.write(self.resultCsv)
+        self.plotpath = ".".join(self.outf.split(".")[:-1]) + ".png"
+        nDisplay(self.result, self.flow, self.stage, csvpath=self.outf, plot=False, plotpath=self.plotpath)
 
     def loadConfig(self):
         vals = configSpecify(self.confField.get(), run=False)
