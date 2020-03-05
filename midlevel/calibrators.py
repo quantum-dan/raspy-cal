@@ -7,10 +7,9 @@ Full copyright notice located in main.py.
 
 from midlevel.params import paramSpec, genParams
 from midlevel.eval import evaluate
-from frontend.display import evalTable, compareAllRatingCurves, nDisplay
 from lowlevel import runSims
 
-def nstageIteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics):
+def nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metrics):
     """
     Run one test.
     :param model: HEC-RAS model
@@ -18,24 +17,41 @@ def nstageIteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax,
     :param reach: reach name
     :param rs: river station
     :param stage: list of stages
-    :param flow: list of flows
     :param nct: number of ns to test
     :param rand: whether to use random ns
     :param nmin: minimum n
     :param nmax: maximum n
     :param metrics: list of metrics to use
-    :param plot: whether to plot results
     :return: [(n, metrics, sim)]
     """
-    pspec = paramSpec("n", nmin, nmax, nct, rand)
-    ns = genParams([pspec], dicts=False)
-    ns = [round(n, 3) for n in ns]  # 3 decimal places should be sufficient, since ns < 0.001 seem to not have much effect anyway
-    print("Using ns: %s" % ns)
-    results = runSims(model, ns, river, reach, len(stage), range=[rs])
-    # Complication below: results is a dictionary of {rs: {profile number: stage}}
-    resultPts = [(ns[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(ns))]
-    best = evaluate(stage, resultPts, metrics=metrics, n=len(ns)//5)  # [(parameters, metrics, sim)]
-    return best
+    return runner(model,
+                  nstageRunspec(river, reach, rs, len(stage)),
+                  paramSpec("n", nmin, nmax, nct, rand),
+                  nstageEvaluator(stage, metrics))
+
+def nstageRunspec(river, reach, rs, pcount):
+    """
+    Generates runspec function for roughness coefficient and stage.
+    :param pcount: number of flow profiles
+    :return: runspec function which returns [(n, simulated stage)]
+    """
+    def runspec(model, pspec):
+        ns = [round(n, 3) for n in genParams([pspec], dicts=False)]
+        results = runSims(model, ns, river, reach, pcount, range=[rs])
+        return [(ns[ix], [results[ix][rs][jx] for jx in range(1, pcount + 1)]) for ix in range(len(ns))]
+    return runspec
+
+def nstageEvaluator(stage, metrics):
+    """
+    Generates evaluator function for roughness coefficient and stage.
+    :param stage: observed stage
+    :param metrics: list of metrics to use
+    :return: evaluator function which returns [(n, metrics, sim)]
+    """
+    def evtr(result):
+        return evaluate(stage, result, metrics=metrics, n=len(result)//3)
+    return evtr
+
 
 def runner(model, runspec, pspec, evaluator):
     """

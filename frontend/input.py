@@ -203,9 +203,13 @@ def iterate(project = None, flow = None, stage = None, river = None, reach = Non
     while cont:
         nmin = float(input("Enter minimum n: "))
         nmax = float(input("Enter maximum n: "))
-        best = nstageIteration(model, river, reach, rs, stage, flow, nct, rand, nmin, nmax, metrics)
-        nDisplay(best, flow, stage, plotpath, outf, plot)
+        best = nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metrics)
+        # Show plot (if specified) but don't save anything
+        nDisplay(best, flow, stage, None, None, plot)
         cont = input("Continue?  Q or q to quit and write results: ") not in ["q", "Q"]
+        if not cont:
+            # Save the plot and CSV
+            nDisplay(best, flow, stage, plotpath, outf, False)
 
 def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, evals = None):
     """

@@ -91,7 +91,9 @@ if __name__ == "__main__":
         else:
             configSpecify(argv[1], run=True)
     else:
-        print("Run python main.py CMD to use the command line version.")
+        print("Run python main.py <config file path> or raspy-cal.exe <config file path> to load a config file \
+in the command line version. \
+Run python main.py CMD or raspy-cal.exe CMD to use the command line version.")
         gui.main()
 
 
