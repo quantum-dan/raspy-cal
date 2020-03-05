@@ -6,7 +6,7 @@ Full copyright notice located in main.py.
 """
 
 from midlevel.params import paramSpec, genParams
-from midlevel.eval import evaluate
+from midlevel.eval import evaluate, evaluator
 from lowlevel import runSims
 
 def nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metrics):
@@ -24,12 +24,16 @@ def nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metri
     :param metrics: list of metrics to use
     :return: [(n, metrics, sim)]
     """
-    return runner(model,
-                  nstageRunspec(river, reach, rs, len(stage)),
+    return multiRunner(model,
+                  nstageMultiRunspec(river, reach, rs, len(stage)),
                   paramSpec("n", nmin, nmax, nct, rand),
-                  nstageEvaluator(stage, metrics))
+                  nstageMultiEvaluator(stage, metrics))
 
-def nstageRunspec(river, reach, rs, pcount):
+def nstageSingleRun(model, river, reach, rs, stage, n, metrics):
+    return singleRunner(model, nstageSingleRunspec(river, reach, rs, len(stage)),
+                        {"n": n}, nstageSingleEvaluator(stage, metrics))
+
+def nstageMultiRunspec(river, reach, rs, pcount):
     """
     Generates runspec function for roughness coefficient and stage.
     :param pcount: number of flow profiles
@@ -41,7 +45,7 @@ def nstageRunspec(river, reach, rs, pcount):
         return [(ns[ix], [results[ix][rs][jx] for jx in range(1, pcount + 1)]) for ix in range(len(ns))]
     return runspec
 
-def nstageEvaluator(stage, metrics):
+def nstageMultiEvaluator(stage, metrics):
     """
     Generates evaluator function for roughness coefficient and stage.
     :param stage: observed stage
@@ -52,10 +56,31 @@ def nstageEvaluator(stage, metrics):
         return evaluate(stage, result, metrics=metrics, n=len(result)//3)
     return evtr
 
+def nstageSingleRunspec(river, reach, rs, pcount):
+    """
+    Generates runspec function for a single roughness coefficient and stage.
+    :param pcount: number of flow profiles
+    :return: runspec function which returns simulated stage
+    """
+    def runspec(model, pset):
+        n = pset["n"]
+        result = runSims(model, [n], river, reach, 1, range=[rs])
+        return result[0][rs][1:pcount+1]
+    return runspec
 
-def runner(model, runspec, pspec, evaluator):
+def nstageSingleEvaluator(stage, metrics):
+    """
+    Generates evaluator function for roughness coefficient and stage.
+    :param stage: observed stage
+    :param metrics: list of metrics to use
+    :return: metrics dictionary
+    """
+    return evaluator(stage, metrics)
+
+def multiRunner(model, runspec, pspec, evaluator):
     """
     Generic iteration function independent of the internal details of runspec, pspec, and evaluator.
+    For use with interactive mode (see nstageRunspec).
     :param model: model as required by runspec
     :param runspec: function accepting arguments model and pspec to run tests as specified
     :param pspec: parameter specification required by runspec, returned by paramSpec
@@ -65,6 +90,19 @@ def runner(model, runspec, pspec, evaluator):
     """
     results = runspec(model, pspec)
     return evaluator(results)
+
+def singleRunner(model, runspec, pset, evaluator):
+    """
+    Generic single-parameter-test function independent of the internal details of runspec, pspec, and evaluator.
+    For use with automatic mode.
+    :param model: model
+    :param runspec: function accepting arguments model and pset to run a test as specified
+    :param pset: parameter or set of parameters for the run (dictionary of values)
+    :param evaluator: evaluator function that takes runspec results and returns a metrics dictionary
+    :return: metrics from evaluator
+    """
+    result = runspec(model, pset)
+    return evaluator(result)
 
 
 
