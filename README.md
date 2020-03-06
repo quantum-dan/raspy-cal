@@ -15,7 +15,7 @@ The user must have a HEC-RAS project including appropriate geometry, plan, and a
 
 ### Command-Line Usage
 
-`python main.py` to launch a graphical interface.  `python main.py CMD` for text-based interactive use.
+`python main.py` to launch a graphical interface.  `python main.py CMD` for text-based interactive use.  `python main.py <config file path>` to load a configuration file and then launch the command line (there is also an option to load config files in the GUI, but some options are ignored).
 
 ### Dependencies
 
@@ -102,7 +102,7 @@ Current progress: minimum feature set implemented.  Basic GUI implemented.  Next
     1. Implement R interface
     1. Implement generic config file + command line interface for use by other programs - DONE (config file)
 1. Luxury improvements
-    1. Implement any necessary changes to make the tool fully generic with respect to both parameters and criteria, allowing it to be used outside of HEC-RAS (if this is not already the case naturally)
+    1. Implement any necessary changes to make the tool fully generic with respect to both parameters and criteria, allowing it to be used outside of HEC-RAS (if this is not already the case naturally) - IN PROGRESS (working on generic modular design)
     1. Implement full GUI - DONE
     1. Implement calibration support tools (e.g. automatic hydrologic-hydraulic model interfacing) (this - very distant - goal would basically mean, for particular applications, "put in rainfall, geometry, and empirical flow data, get out calibrated model" or analogous)
     
