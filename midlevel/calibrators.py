@@ -64,8 +64,8 @@ def nstageSingleRunspec(river, reach, rs, pcount):
     """
     def runspec(model, pset):
         n = pset["n"]
-        result = runSims(model, [n], river, reach, 1, range=[rs])
-        return result[0][rs][1:pcount+1]
+        result = runSims(model, [n], river, reach, pcount, range=[rs])
+        return [result[0][rs][ix] for ix in range(1, pcount+1)]
     return runspec
 
 def nstageSingleEvaluator(stage, metrics):

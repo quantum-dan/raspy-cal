@@ -11,7 +11,7 @@ from midlevel.eval import evaluate, minimized, fullEval, tests, evaluator
 from midlevel.params import paramSpec, genParams
 from frontend.display import evalTable, compareAllRatingCurves, nDisplay
 from midlevel.data import getUSGSData, prepareUSGSData, singleStageFile
-from midlevel.calibrators import nstageIteration
+from midlevel.calibrators import nstageIteration, nstageSingleRun
 
 from platypus import NSGAII, Problem, Real, nondominated # https://platypus.readthedocs.io/en/latest/getting-started.html#defining-constrained-problems
 from urllib.request import urlopen
@@ -223,9 +223,9 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     print("Running automatic calibration")
     def manningEval(vars):
         n = vars[0]
-        result = runSims(model, [n], river, reach, len(stage), range = [rs])[0][rs] # {profile: stage}
-        result = [result[ix] for ix in range(1, len(stage) + 1)] # just stages
-        metrics = minimized(evalf(result))
+        metrics = minimized(
+            nstageSingleRun(model, river, reach, rs, stage, n, keys)
+        )
         values = [metrics[key] for key in keys]
         constraints = [-n, n - 1]
         nonlocal count
@@ -233,8 +233,8 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
         count += 1
         return values, constraints
     c_type = "<0"
-    problem = Problem(1, len(keys), 2) # 1 decision variable, len(keys) objectives, and 2 constraints
-    problem.types[:] = Real(0.001, 1) # range of decision variable
+    problem = Problem(1, len(keys), 2)  # 1 decision variable, len(keys) objectives, and 2 constraints
+    problem.types[:] = Real(0.001, 1)  # range of decision variable
     problem.constraints[:] = c_type
     problem.function = manningEval
 
