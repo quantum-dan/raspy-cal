@@ -41,6 +41,7 @@ class GUI(tk.Frame):
             prepareUSGSData(getUSGSData(self.usgs, period = 365 * 2))
         self.normalSlope = (lambda s: 0.001 if s == "" else float(s))(self.slopeField.get())
         self.fileN = (lambda n: "01" if n == "" else n)(self.fileNField.get())
+
         self.nct = int(self.nField.get())
         self.outf = self.outField.get()
         self.metrics = [key for key in self.keyChecks if self.keyChecks[key].get() == 1]
@@ -110,8 +111,7 @@ class GUI(tk.Frame):
         self.nmax = float(self.nmaxEntry.get())
         self.rand = self.randVar.get() == 1
         self.result = nstageIteration(self.model, self.river, self.reach, self.rs, self.stage,
-                                self.flow, self.nct, self.rand, self.nmin, self.nmax,
-                                self.metrics)
+                                      self.nct, self.rand, self.nmin, self.nmax, self.metrics)
         self.displayResult()
 
     def displayResult(self):
