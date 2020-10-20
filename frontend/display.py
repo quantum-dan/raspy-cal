@@ -46,7 +46,7 @@ def evalTable(params, metricSets, paramName = "n", string = True):
     else:
         return rows
 
-def nDisplay(results, flow, obs, plotpath=None, csvpath=None, plot=True):
+def nDisplay(results, flow, obs, plotpath=None, csvpath=None, plot=True, correctDatum = False):
     """
     Wrapper for displayOutputs using 1-D/Manning's n defaults.
     :param results: [(parameter, metrics, stage)]
@@ -58,11 +58,11 @@ def nDisplay(results, flow, obs, plotpath=None, csvpath=None, plot=True):
     :return: list version of result table
     """
     return displayOutputs("n", results, flow, obs, "Rating Curves Comparison", "Flow (cfs)",
-                          "Stage (ft)", True, True, plotpath, plot, csvpath)
+                          "Stage (ft)", True, True, plotpath, plot, csvpath, correctDatum)
 
 
 def displayOutputs(paramName, results, obsX, obsY, title="", xlab="", ylab="", xlog=True, ylog=True, plotpath=None,
-                   plot=True, csvpath=None):
+                   plot=True, csvpath=None, correctDatum = False):
     """
     Print metric table, show plot (if specified), and save plot (if specified).
     :param paramName: name of calibration parameter
@@ -88,7 +88,8 @@ def displayOutputs(paramName, results, obsX, obsY, title="", xlab="", ylab="", x
         with open(csvpath, "w") as f:
             f.write(csv(listTable))
     if (plotpath is not None) or plot:
-        compareAllRatingCurves(obsX, obsY, timeseries, plot, plotpath, paramName, title, xlab, ylab, xlog, ylog)
+        compareAllRatingCurves(obsX, obsY, timeseries, plot, plotpath, paramName, title, xlab, ylab, xlog, ylog,
+                               correctDatum)
     return listTable
 
 
@@ -106,7 +107,7 @@ markers = [c for c in ".ov^<>1234sP*+xXDd|_"] + ["$%s$" % (chr(c + ord("A"))) fo
 
 def compareAllRatingCurves(x, obs, sims, display=True, path=None, paramName="n",
                            title="Rating Curves Comparison", xlab="Flow (cfs)",
-                           ylab="Depth (ft)", xlog=True, ylog=True):
+                           ylab="Depth (ft)", xlog=True, ylog=True, correctDatum = False):
     """
     Compare all provided rating curves.  Default arguments are depth vs flow calibrating n.
     :param x: list of x variable
@@ -116,9 +117,18 @@ def compareAllRatingCurves(x, obs, sims, display=True, path=None, paramName="n",
     :param path: where to save the plot, or None not to
     :param paramName: name of parameter (for legend)
     """
+    def adjustDatum(sim):
+        if not correctDatum:
+            return sim
+        obs_s = sorted(obs)
+        sim_s = sorted(sim)
+        count = len(obs) // 20 + 1  # Bottom 5%, +1 in case len(obs) < 20
+        adj = (sum(obs_s[:count]) - sum(sim_s[:count])) / count  # Average difference
+        return [s + adj for s in sim]
+
     plt.plot(x, obs, label = "Observed")
     for (ix, (par, sim)) in enumerate(sims):
-        plt.plot(x, sim, label = "Simulated (%s = %.3f)" % (paramName, par), marker=markers[ix % len(markers)])
+        plt.plot(x, adjustDatum(sim), label = "Simulated (%s = %.3f)" % (paramName, par), marker=markers[ix % len(markers)])
     if xlog:
         plt.xscale("log")
     if ylog:

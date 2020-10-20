@@ -105,7 +105,7 @@ period: 500
 
 def specify(project = None, stagef = None, river = None, reach = None, rs = None, nct = None, outf = None,
             plot = None, auto = None, evals = None, metrics = None, fileN = None, slope = None, usgs = None,
-            flowcount = None, enddate = None, startdate = None, period = None):
+            flowcount = None, enddate = None, startdate = None, period = None, correctDatum = None):
     """
     Select options and decide what to do.  All arguments are requested interactively if not specified.
     :param project: project path
@@ -125,6 +125,7 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     :param enddate: end date for USGS
     :param startdate: start date for USGS
     :param period: period for USGS
+    :param correctDatum: whether to adjust the datum
     """
     def getUSGS(usgs, flowcount, enddate, startdate, period):
         flowcount = int(input("Approx. how many flows to retrieve: ")) if flowcount is None else flowcount
@@ -172,18 +173,19 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     plot = input("Enter N to not plot results (default: plot): ") not in ["N", "n"] if plot is None else plot
     nct = int(input("Number of n to test each iteration: ")) if nct is None else nct
     evals = int(input("How many evaluations to run? ")) if auto and evals is None else evals
+    correctDatum = input("Enter Y to correct datum (default: no correction): ") in ["Y", "y"] if correctDatum is None else correctDatum
     model = Model(project)
     model.params.setSteadyFlows(river, reach, rs=None, flows=flow, slope=slope, fileN=fileN)
 
     if not auto:
         iterate(project = project, flow=flow, stage = stage, river = river, reach = reach, rs = rs, nct = nct,
-                outf = outf, model = model, plot = plot, metrics = metrics)
+                outf = outf, model = model, plot = plot, metrics = metrics, correctDatum = correctDatum)
     if auto:
         autoIterate(model = model, river = river, reach = reach, rs = rs, flow = flow, stage = stage, nct = nct,
-                    plot = plot, outf = outf, metrics = metrics, evals = evals)
+                    plot = plot, outf = outf, metrics = metrics, evals = evals, correctDatum = correctDatum)
 
 def iterate(project = None, flow = None, stage = None, river = None, reach = None, rs = None, nct = None,
-            rand = None, outf = None, model = None, plot = None, metrics = None):
+            rand = None, outf = None, model = None, plot = None, metrics = None, correctDatum = None):
     """
     Iterate over n options until the user narrows it down to a good choice.  Note that providing an n of 0 will
     cause HEC-RAS to crash.
@@ -199,19 +201,20 @@ def iterate(project = None, flow = None, stage = None, river = None, reach = Non
     outf = input("Enter path to write output file to or nothing to not write it: ") if outf is None else outf
     plotpath = ".".join(outf.split(".")[:-1]) + ".png"
     plot = input("Plot results? Enter N to not plot: ") not in ["n", "N"] if plot is None else plot
+    correctDatum = input("Enter Y to correct datum (default: no correction): ") in ["Y", "y"] if correctDatum is None else correctDatum
     cont = True
     while cont:
         nmin = float(input("Enter minimum n: "))
         nmax = float(input("Enter maximum n: "))
-        best = nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metrics)
+        best = nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metrics, correctDatum)
         # Show plot (if specified) but don't save anything
-        nDisplay(best, flow, stage, None, None, plot)
+        nDisplay(best, flow, stage, None, None, plot, correctDatum)
         cont = input("Continue?  Q or q to quit and write results: ") not in ["q", "Q"]
         if not cont:
             # Save the plot and CSV
             nDisplay(best, flow, stage, plotpath, outf, False)
 
-def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, evals = None):
+def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, correctDatum, evals = None):
     """
     Automatically iterate with NSGA-II
     """
@@ -224,7 +227,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     def manningEval(vars):
         n = vars[0]
         metrics = minimized(
-            nstageSingleRun(model, river, reach, rs, stage, n, keys)
+            nstageSingleRun(model, river, reach, rs, stage, n, keys, correctDatum)
         )
         values = [metrics[key] for key in keys]
         constraints = [-n, n - 1]
@@ -245,7 +248,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     results = runSims(model, nondomNs, river, reach, len(stage), range = [rs])
     resultPts = [(nondomNs[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(nondomNs))]
     metrics = [(res[0], evalf(res[1]), res[1]) for res in resultPts]
-    nDisplay(metrics, flow, stage, plotpath, outf, plot)
+    nDisplay(metrics, flow, stage, plotpath, outf, plot, correctDatum)
     return metrics
 
 

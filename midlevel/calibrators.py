@@ -9,7 +9,7 @@ from midlevel.params import paramSpec, genParams
 from midlevel.eval import evaluate, evaluator
 from lowlevel import runSims
 
-def nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metrics):
+def nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metrics, correctDatum):
     """
     Run one test.
     :param model: HEC-RAS model
@@ -27,11 +27,11 @@ def nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metri
     return multiRunner(model,
                   nstageMultiRunspec(river, reach, rs, len(stage)),
                   paramSpec("n", nmin, nmax, nct, rand),
-                  nstageMultiEvaluator(stage, metrics))
+                  nstageMultiEvaluator(stage, metrics, correctDatum))
 
-def nstageSingleRun(model, river, reach, rs, stage, n, metrics):
+def nstageSingleRun(model, river, reach, rs, stage, n, metrics, correctDatum):
     return singleRunner(model, nstageSingleRunspec(river, reach, rs, len(stage)),
-                        {"n": n}, nstageSingleEvaluator(stage, metrics))
+                        {"n": n}, nstageSingleEvaluator(stage, metrics, correctDatum))
 
 def nstageMultiRunspec(river, reach, rs, pcount):
     """
@@ -45,7 +45,7 @@ def nstageMultiRunspec(river, reach, rs, pcount):
         return [(ns[ix], [results[ix][rs][jx] for jx in range(1, pcount + 1)]) for ix in range(len(ns))]
     return runspec
 
-def nstageMultiEvaluator(stage, metrics):
+def nstageMultiEvaluator(stage, metrics, correctDatum):
     """
     Generates evaluator function for roughness coefficient and stage.
     :param stage: observed stage
@@ -53,7 +53,7 @@ def nstageMultiEvaluator(stage, metrics):
     :return: evaluator function which returns [(n, metrics, sim)]
     """
     def evtr(result):
-        return evaluate(stage, result, metrics=metrics, n=len(result)//3)
+        return evaluate(stage, result, correctDatum, metrics=metrics, n=len(result)//3)
     return evtr
 
 def nstageSingleRunspec(river, reach, rs, pcount):
@@ -68,14 +68,14 @@ def nstageSingleRunspec(river, reach, rs, pcount):
         return [result[0][rs][ix] for ix in range(1, pcount+1)]
     return runspec
 
-def nstageSingleEvaluator(stage, metrics):
+def nstageSingleEvaluator(stage, metrics, correctDatum):
     """
     Generates evaluator function for roughness coefficient and stage.
     :param stage: observed stage
     :param metrics: list of metrics to use
     :return: metrics dictionary
     """
-    return evaluator(stage, metrics)
+    return evaluator(stage, correctDatum, metrics)
 
 def multiRunner(model, runspec, pspec, evaluator):
     """

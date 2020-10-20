@@ -46,9 +46,10 @@ class GUI(tk.Frame):
         self.outf = self.outField.get()
         self.metrics = [key for key in self.keyChecks if self.keyChecks[key].get() == 1]
         self.plot = self.plotInt.get() == 1
+        self.datum = self.datumInt.get() == 1
 
         print("Parameters: %s" % [self.project, self.river, self.reach, self.rs, self.stagef,
-                                  self.nct, self.outf, self.metrics, self.plot])
+                                  self.nct, self.outf, self.metrics, self.plot, self.datum])
 
     def mainMenu(self):
         self.iterFrame.destroy()
@@ -103,7 +104,7 @@ class GUI(tk.Frame):
         self.evals = int(self.evalsEntry.get())
         self.result = autoIterate(self.model, self.river, self.reach, self.rs,
                                   self.flow, self.stage, self.nct, self.plot, self.outf,
-                                  self.metrics, self.evals)
+                                  self.metrics, self.datum, self.evals)
         self.displayResult()
 
     def runSims(self):
@@ -111,7 +112,8 @@ class GUI(tk.Frame):
         self.nmax = float(self.nmaxEntry.get())
         self.rand = self.randVar.get() == 1
         self.result = nstageIteration(self.model, self.river, self.reach, self.rs, self.stage,
-                                      self.nct, self.rand, self.nmin, self.nmax, self.metrics)
+                                      self.nct, self.rand, self.nmin, self.nmax, self.metrics,
+                                      self.datum)
         self.displayResult()
 
     def displayResult(self):
@@ -124,11 +126,12 @@ class GUI(tk.Frame):
         self.displayFrame.pack(side="top")
         self.displayed = True
         if self.plot:
-            nDisplay(self.result, self.flow, self.stage, plot=True)
+            nDisplay(self.result, self.flow, self.stage, plot=True, correctDatum=self.datum)
 
     def writeResult(self):
         self.plotpath = ".".join(self.outf.split(".")[:-1]) + ".png"
-        nDisplay(self.result, self.flow, self.stage, csvpath=self.outf, plot=False, plotpath=self.plotpath)
+        nDisplay(self.result, self.flow, self.stage, csvpath=self.outf, plot=False, plotpath=self.plotpath,
+                 correctDatum=self.datum)
 
     def loadConfig(self):
         vals = configSpecify(self.confField.get(), run=False)
@@ -165,6 +168,7 @@ class GUI(tk.Frame):
         self.keys = list(tests.keys())
 
         self.plotInt = tk.IntVar()
+        self.datumInt = tk.IntVar()
 
         # Entries
         self.entryFrame = tk.Frame(self)
@@ -183,6 +187,7 @@ class GUI(tk.Frame):
         self.outField = tk.Entry(self.entryFrame, width=100)
         self.metricField = tk.Frame(self.entryFrame)
         self.plotField = tk.Checkbutton(self.entryFrame, text="Plot?", variable=self.plotInt)
+        self.datumField = tk.Checkbutton(self.entryFrame, text="Correct Datum?", variable=self.datumInt)
 
         self.pairs = {
             "project": self.projectField,
@@ -220,7 +225,8 @@ class GUI(tk.Frame):
             ("# ns To Test", self.nField),
             ("Output File Path", self.outField, browseButton(self.entryFrame, self.setVal(self.outField))),
             ("Metrics", self.metricField),
-            ("Plot", self.plotField)
+            ("Plot", self.plotField),
+            ("Datum", self.datumField)
         ]
 
         for (ix, vals) in enumerate(fields):
@@ -245,7 +251,8 @@ LICENSE = """Raspy-Cal Automatic Calibrator
 Copyright (C) 2020 Daniel Philippus
 This program comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are
 welcome to redistribute it under certain conditions.  For details, see the LICENSE
-file at github.com/quantum-dan/raspy-cal.
+file at github.com/quantum-dan/raspy-cal.  This software is released under the GNU
+General Public License v3.
 """
 
 def main():

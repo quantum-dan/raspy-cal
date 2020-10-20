@@ -55,7 +55,7 @@ def fullEval(sim, obs):
         test: tests[test](sim, obs) for test in tests
     }
 
-def evaluator(obs, useTests = None, correctDatum = True):
+def evaluator(obs, correctDatum, useTests = None):
     """
     Return a function which will return either all (if tests is None) or selected comparison
     stats for a set of simulated values, given the set of observed values.
@@ -128,7 +128,7 @@ def bestN(points, n):
         n = n if n <= len(points) else len(points)
         return sorted(points, key = lambda p: p[1])[:n]
 
-def evaluate(obs, sims, metrics = None, useBest = None, usePareto = True, n = 10):
+def evaluate(obs, sims, correctDatum, metrics = None, useBest = None, usePareto = True, n = 10):
     """
     Evaluate the simulations against obs using the given tests (all if None).  If useBest is specified, get the best
     n based on whatever useBest is.  If usePareto and there are multiple metrics, get the non-dominated results.  If
@@ -145,7 +145,7 @@ def evaluate(obs, sims, metrics = None, useBest = None, usePareto = True, n = 10
     :return: list of (parameters, metrics, sim), sorted if useBest is specified, or just one (parameters, metrics)
         if n == 1
     """
-    evtr = evaluator(obs, metrics)
+    evtr = evaluator(obs, correctDatum, metrics)
     evalf = lambda sim: (sim[0], minimized(evtr(sim[1])), sim[1])
     evaled = [evalf(sim) for sim in sims]
     if (metrics is not None) and (len(metrics) == 1):
@@ -171,7 +171,7 @@ if __name__ == "__main__":
         (3, [16, 8, 4, 2, 1])
     ]
     print(evaluate(obs, sims))
-    print(evaluate(obs, sims, useBest = "pbias", n = 1))
-    print(evaluate(obs, sims, metrics = ["r2", "pbias"]))
+    print(evaluate(obs, sims, True, useBest = "pbias", n = 1))
+    print(evaluate(obs, sims, True, metrics = ["r2", "pbias"]))
 
 
