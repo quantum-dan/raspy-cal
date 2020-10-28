@@ -1,17 +1,19 @@
-# raspy-cal
-Python automatic calibrator for HEC-RAS.  RAS + Python + Calibrator = raspy-cal.
+# Raspy-Cal
+Python automatic calibrator for HEC-RAS.  RAS + Python + Calibrator = Raspy-Cal.
 
 ## Usage & Installation
 
 ### Windows Executable
 
-Download `raspy-cal.exe` from Releases and run it.  The executable should work without any dependencies.  Note that it will take quite some time to start up; it is not frozen.  The current version assumes HEC-RAS 5.0.7.  This will be changed in a future release.
+Download `raspy-cal.exe` from Releases and run it.  The executable should work without any dependencies.  Note that it will take quite some time to start up as it loads libraries; it is not frozen.  The current version assumes HEC-RAS 5.0.7.  This will be made flexible in a future release.
 
 ### General
 
-The stage (empirical data) file requested must be a CSV with columns named Flow and Stage.
+The stage (empirical data) file requested must be a CSV with columns named Flow and Stage.  Alternatively, the user can specify a USGS gage to automatically retrieve data.
 
 The user must have a HEC-RAS project including appropriate geometry, plan, and an empty flow file, where the plan is set up to use the flow file, in addition to providing empirical data or a USGS gage number (from which empirical data will be retrieved).  The flow data will be generated from the provided or retrieved empirical data as long as a flow file is available and the plan is set up to use it. The flow file does not have to be empty, but the selected one will be overwritten.  See [development progress](#General-Development-Plan) below.
+
+Note that CSVs written by Excel sometimes have special characters in the column headers, which need to be removed in order for the stage file parser to work correctly.
 
 ### Command-Line Usage
 
@@ -21,7 +23,7 @@ The user must have a HEC-RAS project including appropriate geometry, plan, and a
 
 Some Model object which supports the required functionality as described [below](#Required-API).  The raspy package, which provides such an API, is
 included as a submodule.  The raspy API can be accessed through `default.Model` if raspy is somewhere where it can be accessed (e.g. in its subdirectory
-as a submodule).  Running through `main.py` will use raspy, which is automatically cloned as well as a submodule if cloning from git.
+as a submodule).  Running through `main.py` will use raspy, which is automatically cloned as well as a submodule if cloning from git.  A future update will upload Raspy-Cal and Raspy to PyPI.
 
 Packages:
 * scipy
@@ -92,7 +94,7 @@ Current progress: minimum feature set implemented.  Basic GUI implemented.  Next
         1. Graphical outputs (comparison plots) - DONE
     1. Implement critical mid-level functionality for automatic mode (automatic optimization) - DONE
 1. Analysis & recommendations
-    1. Analyze which criteria lead to best results under which geometry and flow conditions
+    1. Analyze which criteria lead to best results under which geometry and flow conditions - IN PROGRESS
 1. Basic improvements
     1. Implement automatic data preparation from empirical data (flow profiles etc) - DONE
     1. Implement multi-target calibration support

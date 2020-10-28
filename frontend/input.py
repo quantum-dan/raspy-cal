@@ -219,7 +219,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     Automatically iterate with NSGA-II
     """
     keys = metrics  # ensure same order
-    evalf = evaluator(stage, useTests = keys)
+    evalf = evaluator(stage, useTests = keys, correctDatum = correctDatum)
     evals = int(input("How many evaluations to run? ")) if evals is None else evals
     plotpath = ".".join(outf.split(".")[:-1]) + ".png"
     count = 1
