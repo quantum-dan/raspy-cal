@@ -23,10 +23,11 @@ def browseButton(parent, f):
     return tk.Button(parent, text="Browse", command=lambda: f(filedialog.askopenfilename()))
 
 class GUI(tk.Frame):
-    def __init__(self, master = None):
+    def __init__(self, master = None, si = False):
         super().__init__(master)
         self.displayed = False
         self.master = master
+        self.si = si
         self.pack()
         self.createWidgets()
 
@@ -126,12 +127,12 @@ class GUI(tk.Frame):
         self.displayFrame.pack(side="top")
         self.displayed = True
         if self.plot:
-            nDisplay(self.result, self.flow, self.stage, plot=True, correctDatum=self.datum)
+            nDisplay(self.result, self.flow, self.stage, plot=True, correctDatum=self.datum, si=self.si)
 
     def writeResult(self):
         self.plotpath = ".".join(self.outf.split(".")[:-1]) + ".png"
         nDisplay(self.result, self.flow, self.stage, csvpath=self.outf, plot=False, plotpath=self.plotpath,
-                 correctDatum=self.datum)
+                 correctDatum=self.datum, si=self.si)
 
     def loadConfig(self):
         vals = configSpecify(self.confField.get(), run=False)
@@ -255,11 +256,11 @@ file at github.com/quantum-dan/raspy-cal.  This software is released under the G
 General Public License v3.
 """
 
-def main():
+def main(si=False):
     root = tk.Tk()
     mainframe = tk.Frame(root)
     tk.Label(mainframe, text=LICENSE).pack(side="bottom")
-    gui = GUI(mainframe)
+    gui = GUI(mainframe, si=si)
     mainframe.master.title("Raspy-Cal Calibrator")
     mainframe.pack()
     gui.mainloop()

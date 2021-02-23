@@ -76,18 +76,20 @@ if __name__ == "__main__":
                     fileN="05",
                     slope=0.001
                 )
-        if argv[1] == "CMDTEST":  # Test the text interface
+        elif argv[1] == "CMDTEST":  # Test the text interface
             basepath = "V:\\LosAngelesProjectsData\\HEC-RAS\\"
             specify(
                 project = basepath + "raspy\\DemoProject\\project.prj",
                 stagef = basepath + "raspy_cal\\DemoStage.csv",
                 outf = basepath + "raspy_cal\\DemoOut.txt"
             )
-        if argv[1] == "CMD":
+        elif argv[1] == "CMD":
             print(msg)
             specify()
-        if argv[1] == "GUI":  # Test the GUI (when implemented)
+        elif argv[1] == "GUI":  # Test the GUI (when implemented)
             gui.main()
+        elif argv[1] == "METRIC":
+            gui.main(si=True)
         else:
             configSpecify(argv[1], run=True)
     else:

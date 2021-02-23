@@ -46,7 +46,7 @@ def evalTable(params, metricSets, paramName = "n", string = True):
     else:
         return rows
 
-def nDisplay(results, flow, obs, plotpath=None, csvpath=None, plot=True, correctDatum = False):
+def nDisplay(results, flow, obs, plotpath=None, csvpath=None, plot=True, correctDatum = False, si = False):
     """
     Wrapper for displayOutputs using 1-D/Manning's n defaults.
     :param results: [(parameter, metrics, stage)]
@@ -57,8 +57,12 @@ def nDisplay(results, flow, obs, plotpath=None, csvpath=None, plot=True, correct
     :param plot: whether to plot
     :return: list version of result table
     """
-    return displayOutputs("n", results, flow, obs, "Rating Curves Comparison", "Flow (cfs)",
-                          "Stage (ft)", True, True, plotpath, plot, csvpath, correctDatum)
+    if si:
+        flow = [f * (12/39.37)**3 for f in flow]
+        obs = [s * (12/39.37) for s in obs]
+        results = [(r[0], r[1], [i * (12/39.37) for i in r[2]]) for r in results]
+    return displayOutputs("n", results, flow, obs, "Rating Curves Comparison", "Flow (cfs)" if not si else "Flow (cms)",
+                          "Stage (ft)" if not si else "Stage (m)", True, True, plotpath, plot, csvpath, correctDatum)
 
 
 def displayOutputs(paramName, results, obsX, obsY, title="", xlab="", ylab="", xlog=True, ylog=True, plotpath=None,
@@ -69,6 +73,7 @@ def displayOutputs(paramName, results, obsX, obsY, title="", xlab="", ylab="", x
     :param results: list of [(parameter, metrics, output list)]
     :param obsX: x values (e.g. flow) for plotting
     :param obsY: observed y values
+    :param si: 0 for US units, 1 for metric, 2 to convert US units to metric
     :param title: plot title
     :param xlab: plot x label
     :param ylab: plot y label
@@ -87,6 +92,12 @@ def displayOutputs(paramName, results, obsX, obsY, title="", xlab="", ylab="", x
     if csvpath is not None:
         with open(csvpath, "w") as f:
             f.write(csv(listTable))
+        parts = csvpath.split(".")
+        datapath = ".".join(parts[:-1]) + "-data.csv"
+        datatable = [["Q.cfs", "ObsStage.ft"] + ["SimStage.ft.n=" + str(p) for p in params]] + \
+                     [[str(obsX[i]), str(obsY[i])] + [str(r[2][i]) for r in results] for i in range(len(obsX))]
+        with open(datapath, "w") as f:
+            f.write(csv(datatable))
     if (plotpath is not None) or plot:
         compareAllRatingCurves(obsX, obsY, timeseries, plot, plotpath, paramName, title, xlab, ylab, xlog, ylog,
                                correctDatum)
@@ -126,6 +137,7 @@ def compareAllRatingCurves(x, obs, sims, display=True, path=None, paramName="n",
         adj = (sum(obs_s[:count]) - sum(sim_s[:count])) / count  # Average difference
         return [s + adj for s in sim]
 
+    plt.clf()  # Prevent previous plots being shown on the same axes
     plt.plot(x, obs, label = "Observed")
     for (ix, (par, sim)) in enumerate(sims):
         plt.plot(x, adjustDatum(sim), label = "Simulated (%s = %.3f)" % (paramName, par), marker=markers[ix % len(markers)])
