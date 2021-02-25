@@ -6,6 +6,7 @@ Full copyright notice located in main.py.
 """
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 
 
 def csv(list):
@@ -138,7 +139,7 @@ def compareAllRatingCurves(x, obs, sims, display=True, path=None, paramName="n",
         return [s + adj for s in sim]
 
     plt.clf()  # Prevent previous plots being shown on the same axes
-    plt.plot(x, obs, label = "Observed")
+    fig = plt.plot(x, obs, label = "Observed")[0]
     for (ix, (par, sim)) in enumerate(sims):
         plt.plot(x, adjustDatum(sim), label = "Simulated (%s = %.3f)" % (paramName, par), marker=markers[ix % len(markers)])
     if xlog:
@@ -147,6 +148,9 @@ def compareAllRatingCurves(x, obs, sims, display=True, path=None, paramName="n",
         plt.yscale("log")
     plt.xlabel(xlab)
     plt.ylabel(ylab)
+    if x[-1]/x[0] < 50: # only use minor x-axis labels if there won't be enough major labels
+        fig.axes.xaxis.set_minor_formatter(FormatStrFormatter("%.1f"))
+    fig.axes.yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
     plt.title(title)
     plt.legend()
     if path is not None:
