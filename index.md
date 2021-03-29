@@ -4,8 +4,10 @@ A free and open-source automatic calibration system for HEC-RAS.
 
 ## Downloads
 
-* Raspy-Cal: [executable](https://github.com/quantum-dan/raspy-cal/releases/tag/v1.0), [source](https://github.com/quantum-dan/raspy-cal)
-* Raspy (default automation component/reference implementation): [source](https://github.com/quantum-dan/raspy)
+* Raspy-Cal:
+  * [executable](https://github.com/quantum-dan/raspy-cal/releases/tag/v1.0), [source](https://github.com/quantum-dan/raspy-cal)
+  * PyPI installation (recommended if Python is installed): `pip install raspy-cal` (run with `python -m raspy-cal`).
+* Raspy (default automation component/reference implementation): [source](https://github.com/quantum-dan/raspy), `raspy-auto` on PyPI.
 * PyRASFile (HEC-RAS file writer/parser): [source](https://github.com/larflows/pyrasfile)
   * PyRASFile is also available through PyPI (`pip install pyrasfile`).
   * PyRASFile provides ad-hoc file parsing and writing functionality (e.g. writing flow files, parsing report output).  It is used by Raspy to write flow files; most other functionality is handled through the HEC-RAS COM.
@@ -26,11 +28,11 @@ Raspy-Cal is releases under an open-source license, the GNU GPL v3, so anyone el
 
 ## Usage
 
-Raspy-Cal is released as a standalone Windows executable available under [Releases](https://github.com/quantum-dan/raspy-cal/releases/tag/v1.0).  This doesn't have any dependencies other than HEC-RAS (5.0.7; version selection will be introduced in a future update).  You can also download and run directly from [source](https://github.com/quantum-dan/raspy-cal), which requires the Python packages `scipy`, `HydroErr`, `matplotlib`, and `platypus-opt` to be installed.  Running from source is faster to launch.
+Raspy-Cal is released as a standalone Windows executable available under [Releases](https://github.com/quantum-dan/raspy-cal/releases/tag/v1.0).  This doesn't have any dependencies other than HEC-RAS (5.0.7; version selection will be introduced in a future update).  You can also download and run Raspy-Cal from PyPI using `pip install raspy-cal` to install and `python -m raspy_cal` to run if you have Python installed; this will launch considerably faster than the executable.
 
-Also available under Releases is a full example project, Demo.zip, which includes a HEC-RAS project, two Raspy-Cal configuration files, and an empirical data file.
+Also available under Releases is a full example project, Demo.zip, which includes a HEC-RAS project, two Raspy-Cal configuration files, and an empirical data file.  The demo project uses SI units, so be sure to set SI units on in the GUI or configuration file.
 
-You can either run Raspy-Cal through the command line or through a GUI.  By default, it will launch a GUI, which will request all required information.  You can also save your GUI settings as a configuration file and reload them later.  To use the interactive command-line version, run `raspy-cal.exe CMD`, and it will request all required information through the command line.  To load a configuration file in the command line, run `raspy-cal.exe <config path>`, and it'll load the available information; if everything is specified, it will just start running, or it will request any missing information first.  In those examples, `raspy-cal.exe` is interchangeable with `python main.py` if running from source.
+You can either run Raspy-Cal through the command line or through a GUI.  By default, it will launch a GUI, which will request all required information.  You can also save your GUI settings as a configuration file and reload them later.  To use the interactive command-line version, run `raspy-cal.exe CMD`, and it will request all required information through the command line.  To load a configuration file in the command line, run `raspy-cal.exe <config path>`, and it'll load the available information; if everything is specified, it will just start running, or it will request any missing information first.  In those examples, `raspy-cal.exe` is interchangeable with `python -m raspy_cal` if running from source.
 
 However you run it, you need to specify:
 
@@ -46,6 +48,7 @@ However you run it, you need to specify:
 * Which goodness-of-fit metrics to use
 * Whether to plot the results
 * Whether to adjust the datum (since the datum for stage vs. max channel depth doesn't always line up, Raspy-Cal can adjust the data so that the average depth of the lowest 5% of flows is the same for fit metric purposes)
+* Whether to use SI units (the default is US Customary); note that Raspy-Cal won't check the units of the stage file or the HEC-RAS project, so these need to be set correctly by the user.  The SI setting impacts display labels and whether Raspy-Cal converts USGS gage data to SI.
 
 ## License
 
