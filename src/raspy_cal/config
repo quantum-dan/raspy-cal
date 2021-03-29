@@ -1,0 +1,22 @@
+# Example configuration file.  Fill out the values below to use and run with `python main.py <path>` or
+# `raspy-cal.exe <path>` to use this config file.  Comment out lines you don't want to specify with `#`
+# at the start of the line; information not provided will be requested when running as needed.  Not all
+# information is required, e.g. if usgs is specified stagef will be ignored.
+project: V:\LosAngelesProjectsData\HEC-RAS\raspy\DemoProject\project.prj
+stagef: V:\LosAngelesProjectsData\HEC-RAS\raspy_cal\DemoStage.csv
+river: South Platte River
+reach: Above Confluence Park
+rs: 12345.0*
+nct: 10
+outf: C:\\PathToOutputFile\\outfile.csv
+plot: True
+auto: False
+evals: 100
+metrics: r2,rmse,pbias
+filen: 01
+slope: 0.001
+usgs: 09423350
+flowcount: 100
+enddate: 2020-02-26
+startdate: 2019-02-28
+period: 500
