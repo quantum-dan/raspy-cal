@@ -13,17 +13,20 @@ The stage (empirical data) file requested must be a CSV with columns named Flow 
 
 The user must have a HEC-RAS project including appropriate geometry, plan, and an empty flow file, where the plan is set up to use the flow file, in addition to providing empirical data or a USGS gage number (from which empirical data will be retrieved).  The flow data will be generated from the provided or retrieved empirical data as long as a flow file is available and the plan is set up to use it. The flow file does not have to be empty, but the selected one will be overwritten.  See [development progress](#General-Development-Plan) below.
 
+The bulk of the internals are unit system-agnostic, and Raspy-Cal does not check the units of the stage file or the HEC-RAS project; these must be set appropriately, and to match, by the user (cms/m or cfs/ft).  The SI units setting determines data and graph labels (e.g. "Flow (cms)" vs "Flow (cfs)"), and, if the unit system is set to SI, Raspy-Cal will convert USGS data to SI.  The demo project is in SI units.
+
 Note that CSVs written by Excel sometimes have special characters in the column headers, which need to be removed in order for the stage file parser to work correctly.
 
 ### Command-Line Usage
 
-`python main.py` to launch a graphical interface.  `python main.py CMD` for text-based interactive use.  `python main.py <config file path>` to load a configuration file and then launch the command line (there is also an option to load config files in the GUI, but some options are ignored).
+If installed with PyPI or running from source, use `python -m raspy_cal` to launch.  Use the argument `CMD` for text-based interactive use, or pass a config file path as an argument to load the configuration file into the command line version.
 
 ### Dependencies
 
 Some Model object which supports the required functionality as described [below](#Required-API).  The raspy package, which provides such an API, is
 included as a submodule.  The raspy API can be accessed through `default.Model` if raspy is somewhere where it can be accessed (e.g. in its subdirectory
-as a submodule).  The default installation includes, and uses, raspy-auto, which is the raspy package on PyPI.
+as a submodule).  The default installation includes, and uses, raspy-auto, which is the raspy package on PyPI.  All dependencies will be installed automatically if
+Raspy-Cal is installed through PyPI.
 
 Packages:
 * scipy

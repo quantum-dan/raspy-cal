@@ -23,11 +23,10 @@ def browseButton(parent, f):
     return tk.Button(parent, text="Browse", command=lambda: f(filedialog.askopenfilename()))
 
 class GUI(tk.Frame):
-    def __init__(self, master = None, si = False):
+    def __init__(self, master = None):
         super().__init__(master)
         self.displayed = False
         self.master = master
-        self.si = si
         self.pack()
         self.createWidgets()
 
@@ -48,6 +47,7 @@ class GUI(tk.Frame):
         self.metrics = [key for key in self.keyChecks if self.keyChecks[key].get() == 1]
         self.plot = self.plotInt.get() == 1
         self.datum = self.datumInt.get() == 1
+        self.si = self.siInt.get() == 1
 
         print("Parameters: %s" % [self.project, self.river, self.reach, self.rs, self.stagef,
                                   self.nct, self.outf, self.metrics, self.plot, self.datum])
@@ -104,8 +104,8 @@ class GUI(tk.Frame):
         print("Launching automatic calibration")
         self.evals = int(self.evalsEntry.get())
         self.result = autoIterate(self.model, self.river, self.reach, self.rs,
-                                  self.flow, self.stage, self.nct, self.plot, self.outf,
-                                  self.metrics, self.datum, self.evals)
+                                  self.flow, self.stage, self.nct, False, self.outf,
+                                  self.metrics, self.datum, self.evals, self.si)
         self.displayResult()
 
     def runSims(self):
@@ -170,6 +170,7 @@ class GUI(tk.Frame):
 
         self.plotInt = tk.IntVar()
         self.datumInt = tk.IntVar()
+        self.siInt = tk.IntVar()
 
         # Entries
         self.entryFrame = tk.Frame(self)
@@ -189,6 +190,7 @@ class GUI(tk.Frame):
         self.metricField = tk.Frame(self.entryFrame)
         self.plotField = tk.Checkbutton(self.entryFrame, text="Plot?", variable=self.plotInt)
         self.datumField = tk.Checkbutton(self.entryFrame, text="Correct Datum?", variable=self.datumInt)
+        self.siField = tk.Checkbutton(self.entryFrame, text="SI Units?", variable=self.siInt)
 
         self.pairs = {
             "project": self.projectField,
@@ -227,7 +229,8 @@ class GUI(tk.Frame):
             ("Output File Path", self.outField, browseButton(self.entryFrame, self.setVal(self.outField))),
             ("Metrics", self.metricField),
             ("Plot", self.plotField),
-            ("Datum", self.datumField)
+            ("Datum", self.datumField),
+            ("SI Units", self.siField)
         ]
 
         for (ix, vals) in enumerate(fields):
@@ -256,11 +259,11 @@ file at github.com/quantum-dan/raspy-cal.  This software is released under the G
 General Public License v3.
 """
 
-def main(si=False):
+def main():
     root = tk.Tk()
     mainframe = tk.Frame(root)
     tk.Label(mainframe, text=LICENSE).pack(side="bottom")
-    gui = GUI(mainframe, si=si)
+    gui = GUI(mainframe)
     mainframe.master.title("Raspy-Cal Calibrator")
     mainframe.pack()
     gui.mainloop()

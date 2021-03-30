@@ -62,7 +62,8 @@ def configSpecify(confPath, run = True):
         "flowcount": int,
         "enddate": id,
         "startdate": id,
-        "period": int
+        "period": int,
+        "si": toBool
     }
     if confPath is not None:
         with open(confPath) as f:
@@ -74,7 +75,7 @@ def configSpecify(confPath, run = True):
                 rs=vals["rs"], nct=vals["nct"], outf=vals["outf"], plot=vals["plot"], auto=vals["auto"],
                 evals=vals["evals"], metrics=vals["metrics"], fileN=vals["filen"], slope=vals["slope"],
                 usgs=vals["usgs"], flowcount=vals["flowcount"], enddate=vals["enddate"], startdate=vals["startdate"],
-                period=vals["period"]
+                period=vals["period"], si=vals["si"]
             )
         return vals
     else:
@@ -101,11 +102,12 @@ flowcount: 100
 enddate: 2020-02-26
 startdate: 2019-02-28
 period: 500
+si: False
 """
 
 def specify(project = None, stagef = None, river = None, reach = None, rs = None, nct = None, outf = None,
             plot = None, auto = None, evals = None, metrics = None, fileN = None, slope = None, usgs = None,
-            flowcount = None, enddate = None, startdate = None, period = None, correctDatum = None):
+            flowcount = None, enddate = None, startdate = None, period = None, correctDatum = None, si=None):
     """
     Select options and decide what to do.  All arguments are requested interactively if not specified.
     :param project: project path
@@ -126,8 +128,9 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     :param startdate: start date for USGS
     :param period: period for USGS
     :param correctDatum: whether to adjust the datum
+    :param si: use SI units
     """
-    def getUSGS(usgs, flowcount, enddate, startdate, period):
+    def getUSGS(usgs, flowcount, enddate, startdate, period, si):
         flowcount = int(input("Approx. how many flows to retrieve: ")) if flowcount is None else flowcount
         enddate = input("End date or leave blank for today: ") if enddate is None else enddate
         startdate = input("Start date or leave blank for 1 week ago or period: ") if startdate is None and\
@@ -135,7 +138,7 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
                                                                                     else startdate
         period = input("Period or leave blank for 1 week or start date: ") if period is None else period
         return prepareUSGSData(
-            getUSGSData(usgs, enddate, startdate, period),
+            getUSGSData(usgs, enddate, startdate, period, si=si),
             flowcount
         )
 
@@ -174,18 +177,19 @@ def specify(project = None, stagef = None, river = None, reach = None, rs = None
     nct = int(input("Number of n to test each iteration: ")) if nct is None else nct
     evals = int(input("How many evaluations to run? ")) if auto and evals is None else evals
     correctDatum = input("Enter Y to correct datum (default: no correction): ") in ["Y", "y"] if correctDatum is None else correctDatum
+    si = input("Enter Y if HEC-RAS project and flow data are in SI units (default: US customary): ") in ["Y", "y"] if si is None else si
     model = Model(project)
     model.params.setSteadyFlows(river, reach, rs=None, flows=flow, slope=slope, fileN=fileN)
 
     if not auto:
         iterate(project = project, flow=flow, stage = stage, river = river, reach = reach, rs = rs, nct = nct,
-                outf = outf, model = model, plot = plot, metrics = metrics, correctDatum = correctDatum)
+                outf = outf, model = model, plot = plot, metrics = metrics, correctDatum = correctDatum, si=si)
     if auto:
         autoIterate(model = model, river = river, reach = reach, rs = rs, flow = flow, stage = stage, nct = nct,
-                    plot = plot, outf = outf, metrics = metrics, evals = evals, correctDatum = correctDatum)
+                    plot = plot, outf = outf, metrics = metrics, evals = evals, correctDatum = correctDatum, si=si)
 
 def iterate(project = None, flow = None, stage = None, river = None, reach = None, rs = None, nct = None,
-            rand = None, outf = None, model = None, plot = None, metrics = None, correctDatum = None):
+            rand = None, outf = None, model = None, plot = None, metrics = None, correctDatum = None, si=False):
     """
     Iterate over n options until the user narrows it down to a good choice.  Note that providing an n of 0 will
     cause HEC-RAS to crash.
@@ -208,13 +212,13 @@ def iterate(project = None, flow = None, stage = None, river = None, reach = Non
         nmax = float(input("Enter maximum n: "))
         best = nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metrics, correctDatum)
         # Show plot (if specified) but don't save anything
-        nDisplay(best, flow, stage, None, None, plot, correctDatum)
+        nDisplay(best, flow, stage, None, None, plot, correctDatum, si)
         cont = input("Continue?  Q or q to quit and write results: ") not in ["q", "Q"]
         if not cont:
             # Save the plot and CSV
-            nDisplay(best, flow, stage, plotpath, outf, False)
+            nDisplay(best, flow, stage, plotpath, outf, False, correctDatum, si)
 
-def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, correctDatum, evals = None):
+def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, correctDatum, evals = None, si=False):
     """
     Automatically iterate with NSGA-II
     """
@@ -248,7 +252,7 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
     results = runSims(model, nondomNs, river, reach, len(stage), range = [rs])
     resultPts = [(nondomNs[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(nondomNs))]
     metrics = [(res[0], evalf(res[1]), res[1]) for res in resultPts]
-    nDisplay(metrics, flow, stage, plotpath, outf, plot, correctDatum)
+    nDisplay(metrics, flow, stage, plotpath, outf, plot, correctDatum, si)
     return metrics
 
 

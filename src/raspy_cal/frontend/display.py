@@ -58,16 +58,12 @@ def nDisplay(results, flow, obs, plotpath=None, csvpath=None, plot=True, correct
     :param plot: whether to plot
     :return: list version of result table
     """
-    if si:
-        flow = [f * (12/39.37)**3 for f in flow]
-        obs = [s * (12/39.37) for s in obs]
-        results = [(r[0], r[1], [i * (12/39.37) for i in r[2]]) for r in results]
     return displayOutputs("n", results, flow, obs, "Rating Curves Comparison", "Flow (cfs)" if not si else "Flow (cms)",
-                          "Stage (ft)" if not si else "Stage (m)", True, True, plotpath, plot, csvpath, correctDatum)
+                          "Stage (ft)" if not si else "Stage (m)", True, True, plotpath, plot, csvpath, correctDatum, si)
 
 
 def displayOutputs(paramName, results, obsX, obsY, title="", xlab="", ylab="", xlog=True, ylog=True, plotpath=None,
-                   plot=True, csvpath=None, correctDatum = False):
+                   plot=True, csvpath=None, correctDatum = False, si = False):
     """
     Print metric table, show plot (if specified), and save plot (if specified).
     :param paramName: name of calibration parameter
@@ -83,6 +79,7 @@ def displayOutputs(paramName, results, obsX, obsY, title="", xlab="", ylab="", x
     :param plotpath: where to save plot or None not to
     :param csvpath: where to save CSV version of metrics table or None not to
     :param plot: whether to plot
+    :param si: SI units
     :return: list version of result table
     """
     (params, metrics, timeseries) = ([res[0] for res in results], [res[1] for res in results],
@@ -90,12 +87,15 @@ def displayOutputs(paramName, results, obsX, obsY, title="", xlab="", ylab="", x
     stringTable = evalTable(params, metrics, paramName, True)
     listTable = evalTable(params, metrics, paramName, False)
     print(stringTable)
+    qlab = "Q.cms" if si else "Q.cfs"
+    stlab = "ObsStage.m" if si else "ObsStage.ft"
+    simlab = "SimStage.m.n=" if si else "SimStage.ft.n="
     if csvpath is not None:
         with open(csvpath, "w") as f:
             f.write(csv(listTable))
         parts = csvpath.split(".")
         datapath = ".".join(parts[:-1]) + "-data.csv"
-        datatable = [["Q.cfs", "ObsStage.ft"] + ["SimStage.ft.n=" + str(p) for p in params]] + \
+        datatable = [[qlab, stlab] + [simlab + str(p) for p in params]] + \
                      [[str(obsX[i]), str(obsY[i])] + [str(r[2][i]) for r in results] for i in range(len(obsX))]
         with open(datapath, "w") as f:
             f.write(csv(datatable))
@@ -105,12 +105,11 @@ def displayOutputs(paramName, results, obsX, obsY, title="", xlab="", ylab="", x
     return listTable
 
 
-
-def compareRatingCurve(flows, obs, sim):
+def compareRatingCurve(flows, obs, sim, si=False):
     plt.plot(flows, obs, label = "Observed")
     plt.plot(flows, sim, label = "Simulated")
-    plt.xlabel("Flow (cfs)")
-    plt.ylabel("Depth (ft)")
+    plt.xlabel("Flow (cfs)" if not si else "Flow (cms)")
+    plt.ylabel("Depth (ft)" if not si else "Flow (cfs)")
     plt.legend()
     plt.show()
 

@@ -7,7 +7,8 @@ Full copyright notice in main.py.
 
 from urllib.request import urlopen
 
-def usgsURL(gage, end = None, start=None, period=None):
+
+def usgsURL(gage, end=None, start=None, period=None):
     """
     Generate USGS gage data url.
     :param gage: gage number
@@ -26,7 +27,8 @@ def usgsURL(gage, end = None, start=None, period=None):
     end = "" if end is None else end
     return base % (gage, period, start, end)
 
-def getUSGSData(gage, end = None, start = None, period = None, urlFunc = usgsURL):
+
+def getUSGSData(gage, end=None, start=None, period=None, urlFunc=usgsURL, si=False):
     """
     Retrieve USGS gage data for the given gage.
     :param gage: gage number
@@ -34,6 +36,7 @@ def getUSGSData(gage, end = None, start = None, period = None, urlFunc = usgsURL
     :param start: start date
     :param period: number of days to retrieve data for
     :param urlFunc: url generator function (usually should be left as default) (arguments gage, start, end, period)
+    :param si: if true, convert data from cfs/ft to cms/m
     :return: [(flow, stage)]
     """
     # identify flow and stage
@@ -57,16 +60,19 @@ def getUSGSData(gage, end = None, start = None, period = None, urlFunc = usgsURL
             flowcol = ix
         if item.endswith(stagen):
             stagecol = ix
+    volfactor = (12 / 39.37) ** 3 if si else 1
+    stagefactor = 12 / 39.37 if si else 1
     return [
         # skip first 2 rows which are headers, not data, and make sure each row is long enough
-        (float(row[flowcol]), float(row[stagecol])) for row in rows[2:] if len(row) > stagecol and
-                                                                           len(row) > flowcol and
-                                                                           len(row[flowcol]) > 0 and
-                                                                           len(row[stagecol]) > 0
+        (float(row[flowcol]) * volfactor,
+         float(row[stagecol])) * stagefactor for row in rows[2:] if len(row) > stagecol and
+                                                                    len(row) > flowcol and
+                                                                    len(row[flowcol]) > 0 and
+                                                                    len(row[stagecol]) > 0
     ]
 
 
-def prepareUSGSData(usgsData, flowcount = 100, log = True):
+def prepareUSGSData(usgsData, flowcount=100, log=True):
     """
     Prepare flow and stage for use.  Returns a roughly evenly distributed set of flows across the relevant
     range.
@@ -79,7 +85,7 @@ def prepareUSGSData(usgsData, flowcount = 100, log = True):
     # Range: either largest / smallest or largest * smallest
     rng = sortedData[-1][0] / sortedData[0][0] if log else sortedData[-1][0] - sortedData[0][0]
     # flowcount - 1 steps
-    step = rng ** (1/(flowcount - 1)) if log else rng / (flowcount - 1)
+    step = rng ** (1 / (flowcount - 1)) if log else rng / (flowcount - 1)
     flow = [sortedData[0][0]]
     if flow[0] < 0.1:
         flow[0] = 0.1
@@ -102,7 +108,6 @@ def prepareUSGSData(usgsData, flowcount = 100, log = True):
     return (flow, stage)
 
 
-
 def singleStageFile(path):
     """
     Parse a single rating curve file with flow vs stage, assuming the flows are in the order of
@@ -116,7 +121,3 @@ def singleStageFile(path):
     stage = lines[0].index("Stage")
     flow = lines[0].index("Flow")
     return ([float(i[flow]) for i in lines[1:]], [float(i[stage]) for i in lines[1:]])
-
-
-
-

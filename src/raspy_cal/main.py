@@ -88,8 +88,6 @@ def run():
             specify()
         elif argv[1] == "GUI":  # Test the GUI (when implemented)
             gui.main()
-        elif argv[1] == "METRIC":
-            gui.main(si=True)
         else:
             configSpecify(argv[1], run=True)
     else:
