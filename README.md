@@ -5,6 +5,8 @@ Python automatic calibrator for HEC-RAS.  RAS + Python + Calibrator = Raspy-Cal.
 
 ### Windows Executable
 
+Note that the preferred method of running, if you have Python 3 installed or are willing to install it, is to download Raspy-Cal from PyPI (see [Installation](#Installation)).  In addition to launching much faster, this version gets every update, whereas the executable is only updated for more major updates.
+
 Download `raspy-cal.exe` from Releases and run it.  The executable should work without any dependencies.  Note that it will take quite some time to start up as it loads libraries; it is not frozen.  The current version assumes HEC-RAS 5.0.7.  This will be made flexible in a future release.
 
 ### General
