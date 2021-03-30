@@ -63,7 +63,8 @@ def configSpecify(confPath, run = True):
         "enddate": id,
         "startdate": id,
         "period": int,
-        "si": toBool
+        "si": toBool,
+        "datum": toBool
     }
     if confPath is not None:
         with open(confPath) as f:
@@ -75,7 +76,7 @@ def configSpecify(confPath, run = True):
                 rs=vals["rs"], nct=vals["nct"], outf=vals["outf"], plot=vals["plot"], auto=vals["auto"],
                 evals=vals["evals"], metrics=vals["metrics"], fileN=vals["filen"], slope=vals["slope"],
                 usgs=vals["usgs"], flowcount=vals["flowcount"], enddate=vals["enddate"], startdate=vals["startdate"],
-                period=vals["period"], si=vals["si"]
+                period=vals["period"], si=vals["si"], correctDatum=vals["datum"]
             )
         return vals
     else:

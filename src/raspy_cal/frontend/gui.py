@@ -137,12 +137,15 @@ class GUI(tk.Frame):
     def loadConfig(self):
         vals = configSpecify(self.confField.get(), run=False)
         for k in self.pairs:
+            self.pairs[k].delete(0, tk.END)  # clear everything so e.g. USGS gage number doesn't accidentally transfer
             if vals[k] is not None:
-                self.pairs[k].delete(0, tk.END)
                 self.pairs[k].insert(0, str(vals[k]))
+        for k in self.boxes:
+            if vals[k] is not None:
+                self.boxes[k].set(int(vals[k]))
 
     def saveConfig(self):
-        out = [[k, self.pairs[k].get()] for k in self.pairs]
+        out = [[k, self.pairs[k].get()] for k in self.pairs] + [[k, str(bool(self.boxes[k].get()))] for k in self.boxes]
         file = self.confField.get()
         with open(file, "w") as f:
             f.write("\n".join([":".join(i) for i in out]))
@@ -203,6 +206,12 @@ class GUI(tk.Frame):
             "filen": self.fileNField,
             "slope": self.slopeField,
             "usgs": self.usgsField
+        }
+
+        self.boxes = {
+            "plot": self.plotInt,
+            "datum": self.datumInt,
+            "si": self.siInt
         }
 
         self.keyChecks = {}
