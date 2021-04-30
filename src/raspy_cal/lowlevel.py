@@ -50,3 +50,37 @@ def runSims(model, mannings, river, reach, nprofs, range = None, retrieve = STAG
             count += 1
     return out
 
+
+def runMultiSim(model, mannings, rivers, reaches, nprofs, ranges = None, log = True):
+    """
+    Run one simulation of multiple roughness coefficients at different locations
+    and return the results.  Intended for use with automatic calibration.
+    :param model: model API, already initialized
+    :param mannings: list of Manning's n, corresponding to river/reach locations
+    :param rivers: list of rivers
+    :param reaches: list of reaches
+    :param nprofs: number of flow profiles
+    :param ranges: list of ranges of river stations to use, if specified. Otherwise, the whole reach
+    :param log: log successful iteration or not
+    :return: dictionary of {river: {reach: [n, [stages]]}} or {river: {reach: {rs: [n, [stages]]}}}
+    """
+    if log:
+        print("Running multi-n iteration")
+    for (ix, n) in enumerate(mannings):
+        model.params.modifyN(n, rivers[ix], reaches[ix])
+    model.ops.compute(wait=True)
+    out = {}
+    for (ix, river) in enumerate(rivers):
+        reach = reaches[ix]
+        n = mannings[ix]
+        rng = ranges[ix] if ranges is not None else None
+        if not river in out:
+            out[river] = {}
+        if rng is not None:
+            for rs in rng:
+                out[river][reach][rs] = [n, model.data.stage(river, reach, rs, nprofs)]
+        else:
+            out[river][reach] = [n, model.data.stage(river, reach, None, nprofs)]
+    return out
+
+
