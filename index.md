@@ -26,6 +26,39 @@ This is intended to facilitate the use of Raspy-Cal as a generic calibration eng
 
 Raspy-Cal is releases under an open-source license, the GNU GPL v3, so anyone else can develop and release such a variant as long as it, too, is open-source (although components that are used by but not dependent on Raspy-Cal can remain proprietary; typically, the automation layer would not be dependent on Raspy-Cal).
 
+## Quick Start Guide
+
+You must have HEC-RAS 5.0.7 installed for Raspy-Cal to work.  Support for HEC-RAS 6 will be added in the future.
+
+1. If you have Python 3 and pip installed, install with `pip install raspy-cal`.  Otherwise, download the latest executable from Releases.  The Python/pip approach is preferable, as it launches faster and is usually more up-to-date.
+2. If installed with pip, run Raspy-Cal with `python -m raspy_cal`.  Otherwise, run the executable.  Note thsat the executable will take some time to launch.
+3. To load in a configuration file or specify a configuration file to save settings to, set the "Config File Path (optional)" field, for example to the location of Demo/demo_proj.conf if you are using the demo project.
+4. To load the configuration data, click "Load Config".
+5. Fill out the applicable fields below.
+   1. "Project File Path" should be your HEC-RAS project file.
+   2. If you are using a USGS gage, enter its gage number.
+   3. Enter the HEC-RAS river name of the calibration location.
+   4. Enter the HEC-RAS reach name of the calibration location.
+   5. Enter the HEC-RAS river station of the calibration location.
+   6. If you are not using a USGS gage, enter the location of the stage (empirical data) file, e.g. DemoStage.csv.  This should have columns "Flow" and "Stage", in cfs/ft for US units or cms/m for SI units.
+   7. Enter the slope to use for normal depth as a downstream boundary condition.
+   8. Enter the flow file number to overwrite in the HEC-RAS project with the flow data. If it is in the single digits, it should have a leading 0 (e.g. "05").
+   9. Enter how many roughness coefficients to test at once for interactive calibration.
+   10. Enter the output file path (a .csv file).  In addition to e.g. "DemoOut.csv", which will contain the roughness coefficients and error metrics, Raspy-Cal will also write e.g. "DemoOut-data.csv", containing the model output data for the optimal solutions, and "DemoOut.png", containing the rating curve plot.
+   11. Select the desired error metrics, whether to display the plot, whether to use datum adjustment, and whether to use SI units. (If SI units are selected, Raspy-Cal will convert USGS data to SI but will otherwise only change the displayed units in plots etc.  The HEC-RAS project and stage file are assumed to be in the correct unit system).
+6. Click "Save Config" to save your settings.
+7. Click "Automatic Calibration" or "Interactive Calibration".
+8. For automatic calibration:
+   1. Enter the number of evaluations to run.
+   2. Click "Run Automatic Calibration".  When calibration is complete, Raspy-Cal will display the rating curve plot.  After you close the plot, it will display the error metrics.
+9. For interactive calibration:
+   1. Enter the minimum roughness coefficient.
+   2. Enter the maximum roughness coefficient.
+   3. Select whether to use a random or evenly-distributed roughness coefficient distribution.
+   4. Click "Run Simulations".
+   5. When the simulations are complete, Raspy-Cal will display the rating curve plot and error metrics. You can either save the results or adjust the roughness coefficient range and run it again.
+10. After calibration is complete, results will be saved to the specified output files.  The roughness coefficient set in the HEC-RAS project may not be the optimal result, as the optimal result may not have been the last simulation run.
+
 ## Usage
 
 Raspy-Cal is released as a standalone Windows executable available under [Releases](https://github.com/quantum-dan/raspy-cal/releases/tag/v1.0).  This doesn't have any dependencies other than HEC-RAS (5.0.7; version selection will be introduced in a future update).  You can also download and run Raspy-Cal from PyPI using `pip install raspy-cal` to install and `python -m raspy_cal` to run if you have Python installed; this will launch considerably faster than the executable.
