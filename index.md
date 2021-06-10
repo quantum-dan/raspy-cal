@@ -5,7 +5,7 @@ A free and open-source automatic calibration system for HEC-RAS.
 ## Downloads
 
 * Raspy-Cal:
-  * [executable](https://github.com/quantum-dan/raspy-cal/releases/tag/v1.0), [source](https://github.com/quantum-dan/raspy-cal)
+  * [executable](https://github.com/quantum-dan/raspy-cal/releases/tag/v1.0.3), [source](https://github.com/quantum-dan/raspy-cal)
   * PyPI installation (recommended if Python is installed): `pip install raspy-cal` (run with `python -m raspy-cal`).
 * Raspy (default automation component/reference implementation): [source](https://github.com/quantum-dan/raspy), `raspy-auto` on PyPI.
 * PyRASFile (HEC-RAS file writer/parser): [source](https://github.com/larflows/pyrasfile)
