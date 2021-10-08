@@ -223,19 +223,28 @@ class GUI(tk.Frame):
             self.keyChecks[key] = var
 
         fields = [
-            ("Config File Path (optional)", self.confField, browseButton(self.entryFrame, self.setVal(self.confField))),
+            ("Config File Path (optional): store/retrieve settings",
+             self.confField,
+             browseButton(self.entryFrame, self.setVal(self.confField))),
             ("Save Config", self.saveConfigButton),
             ("Load Config", self.loadConfigButton),
-            ("Project File Path", self.projectField, browseButton(self.entryFrame, self.setVal(self.projectField))),
-            ("USGS Gage # (optional)", self.usgsField),
-            ("River Name", self.riverField),
-            ("Reach Name", self.reachField),
-            ("River Station", self.rsField),
-            ("Stage File Path", self.stageField),
-            ("Slope for Normal Depth", self.slopeField),
-            ("Flow file number to write (e.g. 01)", self.fileNField),
-            ("# ns To Test", self.nField),
-            ("Output File Path", self.outField, browseButton(self.entryFrame, self.setVal(self.outField))),
+            ("HEC-RAS Project File Path", self.projectField,
+             browseButton(self.entryFrame, self.setVal(self.projectField))),
+            ("USGS Gage # (optional): automatic USGS data retrieval",
+             self.usgsField),
+            ("Calibration River Name", self.riverField),
+            ("Calibration Reach Name", self.reachField),
+            ("Calibration River Station", self.rsField),
+            ("Stage File Path (CSV with flow, stage; not required if USGS gage specified)",
+             self.stageField,
+             browseButton(self.entryFrame, self.setVal(self.stageField))),
+            ("Slope for Normal Depth (downstream boundary condition)",
+             self.slopeField),
+            ("Flow file number to write (e.g. 01, to overwrite <project>.f01)",
+             self.fileNField),
+            ("# Roughness coefficients to test per iteration", self.nField),
+            ("Output File Path", self.outField,
+             browseButton(self.entryFrame, self.setVal(self.outField))),
             ("Metrics", self.metricField),
             ("Plot", self.plotField),
             ("Datum", self.datumField),
@@ -261,7 +270,7 @@ class GUI(tk.Frame):
 
 
 LICENSE = """Raspy-Cal Automatic Calibrator
-Copyright (C) 2020 Daniel Philippus
+Copyright (C) 2021 Daniel Philippus
 This program comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are
 welcome to redistribute it under certain conditions.  For details, see the LICENSE
 file at github.com/quantum-dan/raspy-cal.  This software is released under the GNU
