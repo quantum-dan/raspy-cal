@@ -1,36 +1,14 @@
 # Raspy-Cal
 
-A free and open-source automatic calibration system for HEC-RAS.
-
-## Downloads
-
-* Raspy-Cal:
-  * [executable](https://github.com/quantum-dan/raspy-cal/releases/tag/v1.0.3), [source](https://github.com/quantum-dan/raspy-cal)
-  * PyPI installation (recommended if Python is installed): `pip install raspy-cal` (run with `python -m raspy-cal`).
-* Raspy (default automation component/reference implementation): [source](https://github.com/quantum-dan/raspy), `raspy-auto` on PyPI.
-* PyRASFile (HEC-RAS file writer/parser): [source](https://github.com/larflows/pyrasfile)
-  * PyRASFile is also available through PyPI (`pip install pyrasfile`).
-  * PyRASFile provides ad-hoc file parsing and writing functionality (e.g. writing flow files, parsing report output).  It is used by Raspy to write flow files; most other functionality is handled through the HEC-RAS COM.
-
-## How does it work?
-
-Raspy-Cal makes calibration of HEC-RAS hydraulic models easy.  The user just provides the model and empirical data for it (or a USGS gage number).  Then, Raspy-Cal runs simulations with a range of Manning's roughness coefficients and selects the best ones based on a set of goodness-of-fit metrics.  It can do the whole process automatically with a genetic algorithm, just returning the finalized results after iterating.  If you'd prefer more control, it can also run a set of simulations within a specified range of roughness coefficients, then show you the best 10 results and let you refine the range.
-
-Raspy-Cal is developed in a modular way so that it depends as little as possible on HEC-RAS functionality and on the implementation details of the automation (Raspy).  It should be relatively straightforward to:
-
-* Swap in other automation modules in place of Raspy, as long as they support the required API functionality
-* Develop similar automation modules for other models and use them with Raspy-Call with minimal modification
-* Build a different calibration platform on top of Raspy
-
-This is intended to facilitate the use of Raspy-Cal as a generic calibration engine, rather than tying it specifically to HEC-RAS.  As much as possible of the HEC-RAS-specific functionality (except for data the user has to provide that's specific to HEC-RAS) is in Raspy, not Raspy-Cal, so changing the model or automation layer should only require modest modifications to a few lines of code in Raspy-Cal itself.
-
-Raspy-Cal is releases under an open-source license, the GNU GPL v3, so anyone else can develop and release such a variant as long as it, too, is open-source (although components that are used by but not dependent on Raspy-Cal can remain proprietary; typically, the automation layer would not be dependent on Raspy-Cal).
+A free and open-source automatic calibration system for HEC-RAS.  A full description of the implementation is in the associated paper, [Raspy-Cal: A Genetic Algorithm-Based Automatic Calibration Tool for HEC-RAS Hydraulic Models](https://www.mdpi.com/2073-4441/13/21/3061) (Water is an open-access journal, so the full article is available without a subscription).
 
 ## Quick Start Guide
 
 You must have HEC-RAS 5.0.7 installed for Raspy-Cal to work.  Support for HEC-RAS 6 will be added in the future.
 
-1. If you have Python 3 and pip installed, install with `pip install raspy-cal`.  Otherwise, download the latest executable from Releases.  The Python/pip approach is preferable, as it launches faster and is usually more up-to-date.
+We recommend installing Raspy-Cal from the Python Package Index, as this version is more actively kept up-to-date and launches much faster than the executable.
+
+1. If you have Python 3 and pip installed, install with `pip install raspy-cal`.  Otherwise, download the latest executable from Releases (see [Downloads](#Downloads).
 2. If installed with pip, run Raspy-Cal with `python -m raspy_cal`.  Otherwise, run the executable.  Note thsat the executable will take some time to launch.
 3. To load in a configuration file or specify a configuration file to save settings to, set the "Config File Path (optional)" field, for example to the location of Demo/demo_proj.conf if you are using the demo project.
 4. To load the configuration data, click "Load Config".
@@ -58,6 +36,30 @@ You must have HEC-RAS 5.0.7 installed for Raspy-Cal to work.  Support for HEC-RA
    4. Click "Run Simulations".
    5. When the simulations are complete, Raspy-Cal will display the rating curve plot and error metrics. You can either save the results or adjust the roughness coefficient range and run it again.
 10. After calibration is complete, results will be saved to the specified output files.  The roughness coefficient set in the HEC-RAS project may not be the optimal result, as the optimal result may not have been the last simulation run.
+
+## Downloads
+
+* Raspy-Cal:
+  * [executable](https://github.com/quantum-dan/raspy-cal/releases/tag/v1.0.3), [source](https://github.com/quantum-dan/raspy-cal)
+  * PyPI installation (recommended if Python is installed): `pip install raspy-cal` (run with `python -m raspy-cal`).
+* Raspy (default automation component/reference implementation): [source](https://github.com/quantum-dan/raspy), `raspy-auto` on PyPI.
+* PyRASFile (HEC-RAS file writer/parser): [source](https://github.com/larflows/pyrasfile)
+  * PyRASFile is also available through PyPI (`pip install pyrasfile`).
+  * PyRASFile provides ad-hoc file parsing and writing functionality (e.g. writing flow files, parsing report output).  It is used by Raspy to write flow files; most other functionality is handled through the HEC-RAS COM.
+
+## How does it work?
+
+Raspy-Cal makes calibration of HEC-RAS hydraulic models easy.  The user just provides the model and empirical data for it (or a USGS gage number).  Then, Raspy-Cal runs simulations with a range of Manning's roughness coefficients and selects the best ones based on a set of goodness-of-fit metrics.  It can do the whole process automatically with a genetic algorithm, just returning the finalized results after iterating.  If you'd prefer more control, it can also run a set of simulations within a specified range of roughness coefficients, then show you the best 10 results and let you refine the range.
+
+Raspy-Cal is developed in a modular way so that it depends as little as possible on HEC-RAS functionality and on the implementation details of the automation (Raspy).  It should be relatively straightforward to:
+
+* Swap in other automation modules in place of Raspy, as long as they support the required API functionality
+* Develop similar automation modules for other models and use them with Raspy-Call with minimal modification
+* Build a different calibration platform on top of Raspy
+
+This is intended to facilitate the use of Raspy-Cal as a generic calibration engine, rather than tying it specifically to HEC-RAS.  As much as possible of the HEC-RAS-specific functionality (except for data the user has to provide that's specific to HEC-RAS) is in Raspy, not Raspy-Cal, so changing the model or automation layer should only require modest modifications to a few lines of code in Raspy-Cal itself.
+
+Raspy-Cal is releases under an open-source license, the GNU GPL v3, so anyone else can develop and release such a variant as long as it, too, is open-source (although components that are used by but not dependent on Raspy-Cal can remain proprietary; typically, the automation layer would not be dependent on Raspy-Cal).
 
 ## Usage
 
