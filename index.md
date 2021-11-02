@@ -8,7 +8,7 @@ You must have HEC-RAS 5.0.7 installed for Raspy-Cal to work.  Support for HEC-RA
 
 We recommend installing Raspy-Cal from the Python Package Index, as this version is more actively kept up-to-date and launches much faster than the executable.
 
-1. If you have Python 3 and pip installed, install with `pip install raspy-cal`.  Otherwise, download the latest executable from Releases (see [Downloads](#Downloads).
+1. If you have Python 3 and pip installed, install with `pip install raspy-cal`.  Otherwise, download the latest executable from Releases (see [Downloads](#Downloads)).
 2. If installed with pip, run Raspy-Cal with `python -m raspy_cal`.  Otherwise, run the executable.  Note thsat the executable will take some time to launch.
 3. To load in a configuration file or specify a configuration file to save settings to, set the "Config File Path (optional)" field, for example to the location of Demo/demo_proj.conf if you are using the demo project.
 4. To load the configuration data, click "Load Config".
