@@ -97,6 +97,10 @@ From the raspy-cal directory, run: `pyinstaller -F main.py`.  This will build a 
 
 ## Functionality & Approach
 
+### Paper
+
+A full description of the implementation is provided in the [associated paper](https://www.mdpi.com/2073-4441/13/21/3061).
+
 ### General Functionality
 Raspy-cal supports both fully-automatic and partially-manual calibration modes.
 
@@ -124,40 +128,9 @@ Low-level (support) functionality:
 * Update parameter values
 * (Eventually) generate flow profiles etc from empirical data; at first, the user will need to specify the flow profiles (pyRasFile supports this use case with minor manual intervention)
 
-## General Development Plan
-Current progress: minimum feature set implemented.  Basic GUI implemented.  Next is analysis & recommendations.
-
-1. Minimum feature set - DONE
-    1. Implement critical low-level functionality (run simulations, update *n* values) - DONE
-    1. Implement critical mid-level functionality for semi-manual mode (compute criteria, generate parameter combinations, choose best combinations) - DONE
-    1. Implement critical top-level functionality (accept inputs, display outputs, accept updated inputs & iterate) (covers both semi-manual and automatic)
-        1. Text-based outputs (table of n vs error stats) - DONE
-        1. Graphical outputs (comparison plots) - DONE
-    1. Implement critical mid-level functionality for automatic mode (automatic optimization) - DONE
-1. Analysis & recommendations
-    1. Analyze which criteria lead to best results under which geometry and flow conditions - IN PROGRESS
-1. Basic improvements
-    1. Implement automatic data preparation from empirical data (flow profiles etc) - DONE
-    1. Implement multi-target calibration support
-        1. Multiple flow ranges
-        1. Multiple locations/empirical data sets (manual range specification)
-    1. Implement automatic generic-use outputs (for use by interfaces) - DONE (outputs CSV of n vs metrics)
-    1. Implement R interface
-    1. Implement generic config file + command line interface for use by other programs - DONE (config file)
-1. Luxury improvements
-    1. Implement any necessary changes to make the tool fully generic with respect to both parameters and criteria, allowing it to be used outside of HEC-RAS (if this is not already the case naturally) - IN PROGRESS (working on generic modular design)
-    1. Implement full GUI - DONE
-    1. Implement calibration support tools (e.g. automatic hydrologic-hydraulic model interfacing) (this - very distant - goal would basically mean, for particular applications, "put in rainfall, geometry, and empirical flow data, get out calibrated model" or analogous)
-    
-### Rough Timeline
-1. Minimum feature set: done
-1. Analysis & recommendations: by late March
-1. Basic improvements: i and ii (important for functionality) by late April; iii-v (convenience features for external use) in fall 2020
-1. Luxury improvements: low-priority continuing development with no specific timelines  
-
 ## Required API
 
-Raspy-cal assumes that the following functionality is available in an API object.  This is provided by raspy.  At the current development level, the user must provide an initialized API object with a project open and the appropriate plan, flow, geometry etc selected.
+Raspy-cal assumes that the following functionality is available in an API object.  This is provided by Raspy, but an alternative automation API can be provided by modifying `default.py`; as long as the provided API object has all of the methods detailed below (see Raspy for a reference implementation), no other modifications should be required.  At the current development level, the user must provide an initialized API object with a project open and the appropriate plan, flow, geometry etc selected.
 
 For example, having access to the method "api.ops.compute(steady, plan)" would be written as:
 
