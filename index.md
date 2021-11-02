@@ -87,4 +87,25 @@ However you run it, you need to specify:
 
 ## License
 
-Raspy-Cal is released under the [GNU General Public License Version 3](https://www.gnu.org/licenses/gpl-3.0.html).  This permits free modification and redistribution of the program and its source, as long as those modifications are themselves released under a similar (copyleft) license.
+Raspy-Cal is released under the [GNU General Public License Version 3](https://www.gnu.org/licenses/gpl-3.0.html).  This permits free modification and redistribution of the program and its source, as long as those modifications are themselves released under the same license.
+
+## Citing
+
+If you need to reference Raspy-Cal, cite the paper linked at the top of the page.  An example citation and BibTeX entry are included below.
+
+Philippus, D.; Wolfand, J.M.; Abdi, R.; Hogue, T.S. Raspy-Cal: A Genetic Algorithm-Based Automatic Calibration Tool for HEC-RAS Hydraulic Models. Water 2021, 13, 3061. https://doi.org/10.3390/w13213061
+
+```
+@Article{RaspyCal,
+AUTHOR = {Philippus, Daniel and Wolfand, Jordyn M. and Abdi, Reza and Hogue, Terri S.},
+TITLE = {Raspy-Cal: A Genetic Algorithm-Based Automatic Calibration Tool for HEC-RAS Hydraulic Models},
+JOURNAL = {Water},
+VOLUME = {13},
+YEAR = {2021},
+NUMBER = {21},
+ARTICLE-NUMBER = {3061},
+URL = {https://www.mdpi.com/2073-4441/13/21/3061},
+ISSN = {2073-4441},
+DOI = {10.3390/w13213061}
+}
+```
