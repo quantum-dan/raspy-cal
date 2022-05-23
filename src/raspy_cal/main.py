@@ -1,7 +1,7 @@
 """
 Run raspy-cal interactively.
 
-Copyright (C) 2020 Daniel Philippus
+Copyright (C) 2020-2022 Daniel Philippus
 
 This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,11 +20,12 @@ This program is free software: you can redistribute it and/or modify
 
 from raspy_cal.frontend.input import specify, configSpecify
 from raspy_cal.frontend import gui
+from raspy_cal.settings import Settings
 from sys import argv
 
 msg = """Raspy-Cal interactive command-line interface.
 
-Copyright (C) 2020 Daniel Philippus
+Copyright (C) 2022 Daniel Philippus
 This program comes with ABSOLUTELY NO WARRANTY.
     This is free software, and you are welcome to redistribute it
     under certain conditions.    For details see the LICENSE file
@@ -54,47 +55,56 @@ locs = {
 basepath = "V:\\LosAngelesProjectsData\\HEC-RAS\\raspy_cal\\"  # for testing
 
 def run():
+    settings = Settings()
     if len(argv) == 4:
-        specify(project=argv[1], stagef=argv[2], outf=argv[3])
-    elif len(argv) == 2:  # for testing
-        if argv[1] == "LAR":  # Test with LA project
-            gage = input("Gage (F37B, F45B, F300, F319): ")
-            for metric in ["r2", "pbias", "rmse", "ks_pval", "ks_stat", "paired", "mae", "nse"]:
-                print("Running %s with %s" % (gage, metric))
-                specify(
-                    project=basepath + "LAR\\FullModel.prj",
-                    stagef=basepath + "data\\" + gage + ".csv",
-                    river=locs[gage]["river"],
-                    reach=locs[gage]["reach"],
-                    rs=locs[gage]["rs"],
-                    outf=basepath + "data\\Out_" + gage + "_" + metric + ".txt",
-                    plot=True,
-                    auto=True,
-                    metrics=[metric],
-                    nct=10,
-                    evals=50,
-                    fileN="05",
-                    slope=0.001
-                )
-        elif argv[1] == "CMDTEST":  # Test the text interface
-            basepath = "V:\\LosAngelesProjectsData\\HEC-RAS\\"
-            specify(
-                project=basepath + "raspy\\DemoProject\\project.prj",
-                stagef=basepath + "raspy_cal\\DemoStage.csv",
-                outf=basepath + "raspy_cal\\DemoOut.txt"
-            )
-        elif argv[1] == "CMD":
+        settings.specify(project=argv[1], stagef=argv[2], outf=argv[3])
+        settings.interactive()
+    # elif len(argv) == 2:  # for testing
+    #     if argv[1] == "LAR":  # Test with LA project
+    #         gage = input("Gage (F37B, F45B, F300, F319): ")
+    #         for metric in ["r2", "pbias", "rmse", "ks_pval", "ks_stat", "paired", "mae", "nse"]:
+    #             print("Running %s with %s" % (gage, metric))
+    #             specify(
+    #                 project=basepath + "LAR\\FullModel.prj",
+    #                 stagef=basepath + "data\\" + gage + ".csv",
+    #                 river=locs[gage]["river"],
+    #                 reach=locs[gage]["reach"],
+    #                 rs=locs[gage]["rs"],
+    #                 outf=basepath + "data\\Out_" + gage + "_" + metric + ".txt",
+    #                 plot=True,
+    #                 auto=True,
+    #                 metrics=[metric],
+    #                 nct=10,
+    #                 evals=50,
+    #                 fileN="05",
+    #                 slope=0.001
+    #             )
+    #     elif argv[1] == "CMDTEST":  # Test the text interface
+    #         basepath = "V:\\LosAngelesProjectsData\\HEC-RAS\\"
+    #         specify(
+    #             project=basepath + "raspy\\DemoProject\\project.prj",
+    #             stagef=basepath + "raspy_cal\\DemoStage.csv",
+    #             outf=basepath + "raspy_cal\\DemoOut.txt"
+    #         )
+    #     elif argv[1] == "CMD":
+    #         print(msg)
+    #         specify()
+    #     elif argv[1] == "GUI":  # Test the GUI (when implemented)
+    #         gui.main()
+    #     else:
+    #         configSpecify(argv[1], run=True)
+    elif len(argv) == 2:
+        if argv[1] == "CMD":
+            settings.interactive()
+        elif argv[1].lower() in ["h", "-h", "help", "--help"]:
             print(msg)
-            specify()
-        elif argv[1] == "GUI":  # Test the GUI (when implemented)
-            gui.main()
         else:
-            configSpecify(argv[1], run=True)
+            settings = configSpecify(argv[1], settings)
     else:
         print("Run python main.py <config file path> or raspy-cal.exe <config file path> to load a config file \
     in the command line version. \
     Run python main.py CMD or raspy-cal.exe CMD to use the command line version.")
-        gui.main()
+        gui.main(settings)
 
 
 if __name__ == "__main__":

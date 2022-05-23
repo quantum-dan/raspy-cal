@@ -1,7 +1,7 @@
 """
 Accept relevant inputs and put them into a useful format.
 
-Copyright (C) 2020 Daniel Philippus
+Copyright (C) 2020-2022 Daniel Philippus
 Full copyright notice located in main.py.
 """
 
@@ -12,9 +12,11 @@ from raspy_cal.midlevel.params import paramSpec, genParams
 from raspy_cal.frontend.display import evalTable, compareAllRatingCurves, nDisplay
 from raspy_cal.midlevel.data import getUSGSData, prepareUSGSData, singleStageFile
 from raspy_cal.midlevel.calibrators import nstageIteration, nstageSingleRun
+from raspy_cal.settings import Settings
 
 from platypus import NSGAII, Problem, Real, nondominated # https://platypus.readthedocs.io/en/latest/getting-started.html#defining-constrained-problems
 from urllib.request import urlopen
+
 
 def parseConfigText(text, parsers):
     """
@@ -36,7 +38,7 @@ def parseConfigText(text, parsers):
             result[v] = parsers[v](stringvals[v])
     return result
 
-def configSpecify(confPath, run = True):
+def configSpecify(confPath, settings, run = True):
     """
     Parse all of the arguments for specify and run it.
     :param confPath: path to the config file, or None to return example config file format
@@ -71,13 +73,15 @@ def configSpecify(confPath, run = True):
             data = f.read()
         vals = parseConfigText(data, parsers)
         if run:
-            specify(
+            settings.specify(
                 project=vals["project"], stagef=vals["stagef"], river=vals["river"], reach=vals["reach"],
                 rs=vals["rs"], nct=vals["nct"], outf=vals["outf"], plot=vals["plot"], auto=vals["auto"],
                 evals=vals["evals"], metrics=vals["metrics"], fileN=vals["filen"], slope=vals["slope"],
                 usgs=vals["usgs"], flowcount=vals["flowcount"], enddate=vals["enddate"], startdate=vals["startdate"],
                 period=vals["period"], si=vals["si"], correctDatum=vals["datum"]
             )
+            settings.interactive()
+            return settings
         return vals
     else:
         return """
@@ -105,89 +109,6 @@ startdate: 2019-02-28
 period: 500
 si: False
 """
-
-def specify(project = None, stagef = None, river = None, reach = None, rs = None, nct = None, outf = None,
-            plot = None, auto = None, evals = None, metrics = None, fileN = None, slope = None, usgs = None,
-            flowcount = None, enddate = None, startdate = None, period = None, correctDatum = None, si=None):
-    """
-    Select options and decide what to do.  All arguments are requested interactively if not specified.
-    :param project: project path
-    :param stagef: stage file path
-    :param river: river name
-    :param reach: reach name
-    :param rs: river station for data collection
-    :param nct: how many ns to test (per generation, if auto)
-    :param outf: output file path or "" not to write one
-    :param plot: to plot results
-    :param auto: whether to use automatic optimization with NSGAII
-    :param metrics: list of metrics to use
-    :param fileN: flow file number to write to
-    :param slope: slope for normal depth boundary condition
-    :param usgs: USGS gage to use or "" not to use
-    :param flowcount: how many flows to select if using USGS data
-    :param enddate: end date for USGS
-    :param startdate: start date for USGS
-    :param period: period for USGS
-    :param correctDatum: whether to adjust the datum
-    :param si: use SI units
-    """
-    def getUSGS(usgs, flowcount, enddate, startdate, period, si):
-        flowcount = int(input("Approx. how many flows to retrieve: ")) if flowcount is None else flowcount
-        enddate = input("End date or leave blank for today: ") if enddate is None else enddate
-        startdate = input("Start date or leave blank for 1 week ago or period: ") if startdate is None and\
-                                                                                    (period is None or period == "")\
-                                                                                    else startdate
-        period = input("Period or leave blank for 1 week or start date: ") if period is None else period
-        return prepareUSGSData(
-            getUSGSData(usgs, enddate, startdate, period, si=si),
-            flowcount
-        )
-
-
-    project = input("Enter project path (including .prj file): ") if project is None else project
-    usgs = "" if stagef is not None else usgs
-    usgs = input("USGS gage number or leave blank to use a stage file: ") if usgs is None else usgs
-    if usgs == "":
-        stagef = input("Enter path to stage file: ") if stagef is None else stagef
-    (flow, stage) = singleStageFile(stagef) if usgs == "" else getUSGS(usgs, flowcount, enddate, startdate, period)
-    outf = input("Enter output file path or nothing to not have one: ") if outf is None else outf
-    fileN = input("Enter flow file number to write (default 01): ") if fileN is None else fileN
-    fileN = "01" if fileN == "" else fileN
-    slope = input("Enter slope for normal depth (default 0.001): ") if slope is None else slope
-    slope = float(0.001) if slope == "" else float(slope)
-    if metrics is None:
-        metrics = [] if input("Enter Y to specify metrics: ") in ["Y", "y"] else None
-        keys = list(tests.keys())
-        if metrics == []:
-            inp = ""
-            while inp not in ["D", "d"]:
-                print("Available metrics: %s" % keys)
-                print("Selected metrics: %s" % metrics)
-                inp = input("Enter a metric to add it or D if done: ")
-                if inp in keys:
-                    metrics.append(inp)
-                elif inp not in ["D", "d"]:
-                    print("Warning: entered metric is not an option.")
-        if metrics == []:
-            metrics = None
-    river = input("River name: ") if river is None else river
-    reach = input("Reach name: ") if reach is None else reach
-    rs = input("River station: ") if rs is None else rs
-    auto = input("Enter Y to use automatic calibration (default: interactive): ") in ["Y", "y"] if auto is None else auto
-    plot = input("Enter N to not plot results (default: plot): ") not in ["N", "n"] if plot is None else plot
-    nct = int(input("Number of n to test each iteration: ")) if nct is None else nct
-    evals = int(input("How many evaluations to run? ")) if auto and evals is None else evals
-    correctDatum = input("Enter Y to correct datum (default: no correction): ") in ["Y", "y"] if correctDatum is None else correctDatum
-    si = input("Enter Y if HEC-RAS project and flow data are in SI units (default: US customary): ") in ["Y", "y"] if si is None else si
-    model = Model(project)
-    model.params.setSteadyFlows(river, reach, rs=None, flows=flow, slope=slope, fileN=fileN)
-
-    if not auto:
-        iterate(project = project, flow=flow, stage = stage, river = river, reach = reach, rs = rs, nct = nct,
-                outf = outf, model = model, plot = plot, metrics = metrics, correctDatum = correctDatum, si=si)
-    if auto:
-        autoIterate(model = model, river = river, reach = reach, rs = rs, flow = flow, stage = stage, nct = nct,
-                    plot = plot, outf = outf, metrics = metrics, evals = evals, correctDatum = correctDatum, si=si)
 
 def iterate(project = None, flow = None, stage = None, river = None, reach = None, rs = None, nct = None,
             rand = None, outf = None, model = None, plot = None, metrics = None, correctDatum = None, si=False):

@@ -23,10 +23,11 @@ def browseButton(parent, f):
     return tk.Button(parent, text="Browse", command=lambda: f(filedialog.askopenfilename()))
 
 class GUI(tk.Frame):
-    def __init__(self, master = None):
+    def __init__(self, master, settings):
         super().__init__(master)
         self.displayed = False
         self.master = master
+        self.settings = settings
         self.pack()
         self.createWidgets()
 
@@ -277,11 +278,11 @@ file at github.com/quantum-dan/raspy-cal.  This software is released under the G
 General Public License v3.
 """
 
-def main():
+def main(settings):
     root = tk.Tk()
     mainframe = tk.Frame(root)
     tk.Label(mainframe, text=LICENSE).pack(side="bottom")
-    gui = GUI(mainframe)
+    gui = GUI(mainframe, settings)
     mainframe.master.title("Raspy-Cal Calibrator")
     mainframe.pack()
     gui.mainloop()
