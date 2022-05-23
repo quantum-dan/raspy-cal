@@ -18,7 +18,7 @@ This program is free software: you can redistribute it and/or modify
 """
 
 
-from raspy_cal.frontend.input import specify, configSpecify
+from raspy_cal.frontend.input import specify, configSpecify, run
 from raspy_cal.frontend import gui
 from raspy_cal.settings import Settings
 from sys import argv
@@ -59,6 +59,7 @@ def run():
     if len(argv) == 4:
         settings.specify(project=argv[1], stagef=argv[2], outf=argv[3])
         settings.interactive()
+        run(settings)
     # elif len(argv) == 2:  # for testing
     #     if argv[1] == "LAR":  # Test with LA project
     #         gage = input("Gage (F37B, F45B, F300, F319): ")
@@ -96,10 +97,12 @@ def run():
     elif len(argv) == 2:
         if argv[1] == "CMD":
             settings.interactive()
+            run(settings)
         elif argv[1].lower() in ["h", "-h", "help", "--help"]:
             print(msg)
         else:
             settings = configSpecify(argv[1], settings)
+            run(settings)
     else:
         print("Run python main.py <config file path> or raspy-cal.exe <config file path> to load a config file \
     in the command line version. \

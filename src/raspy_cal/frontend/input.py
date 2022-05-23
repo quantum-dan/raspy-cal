@@ -110,50 +110,76 @@ period: 500
 si: False
 """
 
-def iterate(project = None, flow = None, stage = None, river = None, reach = None, rs = None, nct = None,
-            rand = None, outf = None, model = None, plot = None, metrics = None, correctDatum = None, si=False):
+
+def run(settings):
+    auto = settings.auto
+    if auto:
+        iterate(settings)
+    else:
+        autoIterate(settings)
+
+
+def iterate(settings, model=None, rand=None):
     """
-    Iterate over n options until the user narrows it down to a good choice.  Note that providing an n of 0 will
+    Iterate over n options until the user narrows it down to a good choice.
+    Note that providing an n of 0 will
     cause HEC-RAS to crash.
     :return: final ns
     """
-    project = input("Enter project path (including .prj file): ") if project is None else project
-    model = Model(project) if model is None else model
-    river = input("River name: ") if river is None else river
-    reach = input("Reach name: ") if reach is None else reach
-    rs = input("River station: ") if rs is None else rs
-    nct = int(input("Enter number of n to test each iteration: ")) if nct is None else nct
-    rand = input("Enter Y to use random parameter generation: ") in ["y", "Y"] if rand is None else rand
-    outf = input("Enter path to write output file to or nothing to not write it: ") if outf is None else outf
-    plotpath = ".".join(outf.split(".")[:-1]) + ".png"
-    plot = input("Plot results? Enter N to not plot: ") not in ["n", "N"] if plot is None else plot
-    correctDatum = input("Enter Y to correct datum (default: no correction): ") in ["Y", "y"] if correctDatum is None else correctDatum
+    model = Model(settings.project) if model is None else model
+    rand = input("Enter Y to use random parameter generation: ") in ["y", "Y"]\
+        if rand is None else rand
+    plotpath = ".".join(settings.outf.split(".")[:-1]) + ".png"
     cont = True
     while cont:
         nmin = float(input("Enter minimum n: "))
         nmax = float(input("Enter maximum n: "))
-        best = nstageIteration(model, river, reach, rs, stage, nct, rand, nmin, nmax, metrics, correctDatum)
+        best = nstageIteration(model,
+                               settings.river,
+                               settings.reach,
+                               settings.rs,
+                               settings.stage,
+                               settings.nct,
+                               rand,
+                               nmin,
+                               nmax,
+                               settings.metrics,
+                               settings.datum)
         # Show plot (if specified) but don't save anything
-        nDisplay(best, flow, stage, None, None, plot, correctDatum, si)
-        cont = input("Continue?  Q or q to quit and write results: ") not in ["q", "Q"]
+        nDisplay(best, settings.flow, settings.stage, None, None,
+                 settings.plot, settings.datum, settings.si)
+        cont = input("Continue?  Q or q to quit and write results: ")\
+            not in ["q", "Q"]
         if not cont:
             # Save the plot and CSV
-            nDisplay(best, flow, stage, plotpath, outf, False, correctDatum, si)
+            nDisplay(best, settings.flow, settings.stage,
+                     plotpath, settings.outf, False, settings.datum,
+                     settings.si)
 
-def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, correctDatum, evals = None, si=False):
+
+def autoIterate(settings, model=None):
     """
     Automatically iterate with NSGA-II
     """
-    keys = metrics  # ensure same order
-    evalf = evaluator(stage, useTests = keys, correctDatum = correctDatum)
-    evals = int(input("How many evaluations to run? ")) if evals is None else evals
-    plotpath = ".".join(outf.split(".")[:-1]) + ".png"
+    keys = settings.metrics  # ensure same order
+    evalf = evaluator(settings.stage,
+                      useTests=keys,
+                      correctDatum=settings.datum)
+    plotpath = ".".join(settings.outf.split(".")[:-1]) + ".png"
     count = 1
     print("Running automatic calibration")
+
     def manningEval(vars):
         n = vars[0]
         metrics = minimized(
-            nstageSingleRun(model, river, reach, rs, stage, n, keys, correctDatum)
+            nstageSingleRun(model,
+                            settings.river,
+                            settings.reach,
+                            settings.rs,
+                            settings.stage,
+                            n,
+                            keys,
+                            settings.datum)
         )
         values = [metrics[key] for key in keys]
         constraints = [-n, n - 1]
@@ -162,42 +188,23 @@ def autoIterate(model, river, reach, rs, flow, stage, nct, plot, outf, metrics, 
         count += 1
         return values, constraints
     c_type = "<0"
-    problem = Problem(1, len(keys), 2)  # 1 decision variable, len(keys) objectives, and 2 constraints
+    # 1 decision variable, len(keys) objectives, and 2 constraints
+    problem = Problem(1, len(keys), 2)
     problem.types[:] = Real(0.001, 1)  # range of decision variable
     problem.constraints[:] = c_type
     problem.function = manningEval
 
-    algorithm = NSGAII(problem, population_size = nct)
-    algorithm.run(evals)
-    nondom = nondominated(algorithm.result) # nondom: list of Solutions - wanted value is variables[0]
+    algorithm = NSGAII(problem, population_size=settings.nct)
+    algorithm.run(settings.evals)
+    # nondom: list of Solutions - wanted value is variables[0]
+    nondom = nondominated(algorithm.result)
     nondomNs = [sol.variables[0] for sol in nondom]
-    results = runSims(model, nondomNs, river, reach, len(stage), range = [rs])
-    resultPts = [(nondomNs[ix], [results[ix][rs][jx] for jx in range(1, len(stage) + 1)]) for ix in range(len(nondomNs))]
+    results = runSims(model, nondomNs, settings.river,
+                      settings.reach, len(settings.stage),
+                      range=[settings.rs])
+    resultPts = [(nondomNs[ix], [results[ix][settings.rs][jx] for jx in range(
+        1, len(settings.stage) + 1)]) for ix in range(len(nondomNs))]
     metrics = [(res[0], evalf(res[1]), res[1]) for res in resultPts]
-    nDisplay(metrics, flow, stage, plotpath, outf, plot, correctDatum, si)
+    nDisplay(metrics, settings.flow, settings.stage, plotpath,
+             settings.outf, settings.plot, settings.datum, settings.si)
     return metrics
-
-
-def testrun():
-    specify(
-        project = "V:\\LosAngelesProjectsData\\HEC-RAS\\raspy\\DemoProject\\project.prj",
-        stagef = "V:\\LosAngelesProjectsData\\HEC-RAS\\raspy_cal\\DemoStage.csv",
-        river = "river1",
-        reach = "reach1",
-        rs = "200",
-        # nct = 10,
-        # rand = False,
-        outf = "V:\\LosAngelesProjectsData\\HEC-RAS\\raspy_cal\\DemoOut.txt",
-        plot = True
-    )
-
-if __name__ == "__main__":
-    gn = "09423350"
-    print(prepareUSGSData(getUSGSData(gn, period=365*2), log=False))
-
-
-
-
-
-
-
