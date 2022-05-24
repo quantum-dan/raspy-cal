@@ -18,7 +18,7 @@ This program is free software: you can redistribute it and/or modify
 """
 
 
-from raspy_cal.frontend.input import specify, configSpecify, run
+from raspy_cal.frontend.input import configSpecify, run
 from raspy_cal.frontend import gui
 from raspy_cal.settings import Settings
 from sys import argv

@@ -114,9 +114,9 @@ si: False
 def run(settings):
     auto = settings.auto
     if auto:
-        iterate(settings)
-    else:
         autoIterate(settings)
+    else:
+        iterate(settings)
 
 
 def iterate(settings, model=None, rand=None):
