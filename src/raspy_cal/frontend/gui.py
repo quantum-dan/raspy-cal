@@ -11,6 +11,7 @@ from raspy_cal.midlevel.calibrators import nstageIteration
 from raspy_cal.frontend.display import evalTable, csv, nDisplay
 from raspy_cal.midlevel.eval import tests
 from raspy_cal.default import Model
+from raspy_cal.settings import Settings
 import tkinter as tk
 from tkinter import filedialog
 
@@ -32,6 +33,7 @@ class GUI(tk.Frame):
         self.createWidgets()
 
     def saveParameters(self):
+        self.version = self.versionField.get()
         self.project = self.projectField.get()
         self.river = self.riverField.get()
         self.reach = self.reachField.get()
@@ -49,6 +51,26 @@ class GUI(tk.Frame):
         self.plot = self.plotInt.get() == 1
         self.datum = self.datumInt.get() == 1
         self.si = self.siInt.get() == 1
+        
+        self.settings.specify(
+                project=self.project,
+                stagef=self.stagef,
+                river=self.river,
+                reach=self.reach,
+                rs=self.rs,
+                stage=self.stage,
+                flow=self.flow,
+                nct=self.nct,
+                outf=self.outf,
+                plot=self.plot,
+                metrics=self.metrics,
+                fileN=self.fileN,
+                slope=self.normalSlope,
+                usgs=self.usgs,
+                period=365*2,
+                correctDatum=self.datum,
+                si=self.si,
+                version=self.version)
 
         print("Parameters: %s" % [self.project, self.river, self.reach, self.rs, self.stagef,
                                   self.nct, self.outf, self.metrics, self.plot, self.datum])
@@ -61,7 +83,7 @@ class GUI(tk.Frame):
     def selectRunType(self, runType):
         # runType: "auto" or "manual"
         self.saveParameters()
-        self.model = Model(self.project)
+        self.model = Model(self.project, self.version)
         self.model.params.setSteadyFlows(self.river, self.reach, rs=None, flows=self.flow, slope=self.normalSlope,
                                          fileN=self.fileN)
 
@@ -104,9 +126,11 @@ class GUI(tk.Frame):
     def runGenetic(self):
         print("Launching automatic calibration")
         self.evals = int(self.evalsEntry.get())
-        self.result = autoIterate(self.model, self.river, self.reach, self.rs,
-                                  self.flow, self.stage, self.nct, False, self.outf,
-                                  self.metrics, self.datum, self.evals, self.si)
+        self.settings.specify(evals=self.evals)
+        # self.result = autoIterate(self.model, self.river, self.reach, self.rs,
+        #                           self.flow, self.stage, self.nct, False, self.outf,
+        #                           self.metrics, self.datum, self.evals, self.si)
+        self.result = autoIterate(self.settings, self.model)
         self.displayResult()
 
     def runSims(self):
@@ -181,6 +205,7 @@ class GUI(tk.Frame):
         self.confField = tk.Entry(self.entryFrame, width=100)
         self.saveConfigButton = tk.Button(self.entryFrame, text="Save Config", command=self.saveConfig)
         self.loadConfigButton = tk.Button(self.entryFrame, text="Load Config", command=self.loadConfig)
+        self.versionField = tk.Entry(self.entryFrame, width=20)
         self.projectField = tk.Entry(self.entryFrame, width=100)
         self.usgsField = tk.Entry(self.entryFrame, width = 100)
         self.riverField = tk.Entry(self.entryFrame, width=100)
@@ -197,6 +222,7 @@ class GUI(tk.Frame):
         self.siField = tk.Checkbutton(self.entryFrame, text="SI Units?", variable=self.siInt)
 
         self.pairs = {
+            "version": self.versionField,
             "project": self.projectField,
             "stagef": self.stageField,
             "river": self.riverField,
@@ -229,6 +255,7 @@ class GUI(tk.Frame):
              browseButton(self.entryFrame, self.setVal(self.confField))),
             ("Save Config", self.saveConfigButton),
             ("Load Config", self.loadConfigButton),
+            ("HEC-RAS Version Number (e.g., 507, 631)", self.versionField),
             ("HEC-RAS Project File Path", self.projectField,
              browseButton(self.entryFrame, self.setVal(self.projectField))),
             ("USGS Gage # (optional): automatic USGS data retrieval",

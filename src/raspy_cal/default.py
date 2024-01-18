@@ -9,5 +9,5 @@ Full copyright notice located in main.py.
 
 from raspy_auto import Ras, API
 
-def Model(projectPath):
-    return API(Ras(projectPath))
+def Model(projectPath, version):
+    return API(Ras(projectPath, version))

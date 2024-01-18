@@ -38,7 +38,7 @@ def parseConfigText(text, parsers):
             result[v] = parsers[v](stringvals[v])
     return result
 
-def configSpecify(confPath, settings, run = True):
+def configSpecify(confPath, settings = Settings(), run = True):
     """
     Parse all of the arguments for specify and run it.
     :param confPath: path to the config file, or None to return example config file format
@@ -47,6 +47,7 @@ def configSpecify(confPath, settings, run = True):
     id = lambda x: x
     toBool = lambda x: x in ["True", "true", "t", "T"]
     parsers = {
+        "version": id,
         "project": id,
         "stagef": id,
         "river": id,
@@ -78,7 +79,8 @@ def configSpecify(confPath, settings, run = True):
                 rs=vals["rs"], nct=vals["nct"], outf=vals["outf"], plot=vals["plot"], auto=vals["auto"],
                 evals=vals["evals"], metrics=vals["metrics"], fileN=vals["filen"], slope=vals["slope"],
                 usgs=vals["usgs"], flowcount=vals["flowcount"], enddate=vals["enddate"], startdate=vals["startdate"],
-                period=vals["period"], si=vals["si"], correctDatum=vals["datum"]
+                period=vals["period"], si=vals["si"], correctDatum=vals["datum"],
+                version=vals["version"]
             )
             settings.interactive()
             return settings
@@ -90,6 +92,7 @@ def configSpecify(confPath, settings, run = True):
 # at the start of the line; information not provided will be requested when running as needed.  Not all
 # information is required, e.g. if usgs is specified stagef will be ignored.
 project: C:\\PathToHECRASProject\\project.prj
+version: 507
 stagef: C:\\PathToStagefileIfUsed\\stagefile.csv
 river: South Platte River
 reach: Above Confluence Park
@@ -126,7 +129,7 @@ def iterate(settings, model=None, rand=None):
     cause HEC-RAS to crash.
     :return: final ns
     """
-    model = Model(settings.project) if model is None else model
+    model = Model(settings.project, settings.version) if model is None else model
     rand = input("Enter Y to use random parameter generation: ") in ["y", "Y"]\
         if rand is None else rand
     plotpath = ".".join(settings.outf.split(".")[:-1]) + ".png"

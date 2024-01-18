@@ -22,6 +22,7 @@ class Settings(object):
     # for passing them around instead of massive lists of arguments.
     def __init__(self):
         # Everything is None to begin with (empty object).
+        self.version = None
         self.project = None
         self.stagef = None
         self.river = None
@@ -65,7 +66,10 @@ class Settings(object):
                 startdate=None,
                 period=None,
                 correctDatum=None,
-                si=False
+                si=False,
+                version=None,
+                stage=None,
+                flow=None
                 ):
         # Set up initial settings with one call.
 
@@ -76,6 +80,10 @@ class Settings(object):
             self.project = project
         if stagef is not None:
             self.stagef = stagef
+        if stage is not None:
+            self.stage = stage
+        if flow is not None:
+            self.flow = flow
         if river is not None:
             self.river = river
         if reach is not None:
@@ -115,6 +123,8 @@ class Settings(object):
             self.datum = correctDatum
         if si is not None:
             self.si = si
+        if version is not None:
+            self.version = version
 
     def interactive(self):
         # Get settings from user via interactive command line usage.
@@ -137,6 +147,9 @@ class Settings(object):
                 flowcount
             )
 
+        self.version =\
+            input("Enter HEC-RAS version without dots (e.g., 507, 631):")\
+            if self.version is None else self.version
         self.project = input(
             "Enter project path (including .prj file): ") if self.project is\
             None else self.project
